@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreddyConnect — Storylane Demo Navigator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #0d1b2a;
+    color: #ffffff;
+    min-height: 100vh;
+    padding: 40px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .logo-text {
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+  }
+  .logo-sub {
+    font-size: 13px;
+    color: #4caf50;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  h1 { font-size: 22px; font-weight: 400; color: #a0aec0; }
+  .scenario-block { margin-bottom: 48px; }
+  .scenario-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #4caf50;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #1e3a2e;
+  }
+  .screens-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .screen-card {
+    background: #13253a;
+    border: 1px solid #1e3a5f;
+    border-radius: 12px;
+    padding: 24px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    display: block;
+  }
+  .screen-card:hover {
+    border-color: #008542;
+    background: #162d47;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,133,66,0.15);
+  }
+  .screen-number {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4caf50;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .screen-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .screen-desc {
+    font-size: 13px;
+    color: #718096;
+    line-height: 1.5;
+  }
+  .screen-icon {
+    width: 40px;
+    height: 40px;
+    background: #1a5c38;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 10px;
+  }
+  .badge-green { background: #1a5c38; color: #4caf50; }
+  .badge-blue { background: #1a2f5c; color: #63b3ed; }
+  .footer {
+    text-align: center;
+    margin-top: 60px;
+    color: #4a5568;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo-sub">Storylane Demo</div>
+  <div class="logo-wrap">
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+    </svg>
+    <div class="logo-text">FreddyConnect</div>
+  </div>
+  <h1>Heineken AI Platform — Demo Navigator</h1>
+</div>
+
+<div class="scenario-block">
+  <div class="scenario-title">Connect+ Process &amp; Governance</div>
+  <div class="screens-grid">
+    <a href="screen0.html" class="screen-card">
+      <div class="screen-icon">🔗</div>
+      <div class="screen-number">Overview</div>
+      <div class="screen-name">CONNECT Process Overview</div>
+      <div class="screen-desc">5-step IMC framework overview — all steps navigable.</div>
+      <span class="badge badge-green">Connect+</span>
+    </a>
+    <a href="connect-dashboard.html" class="screen-card">
+      <div class="screen-icon">🏠</div>
+      <div class="screen-number">Dashboard</div>
+      <div class="screen-name">Tecate Dashboard</div>
+      <div class="screen-desc">Heineken / Tecate brand home with brief tools, chat interface, and CONNECT tiles.</div>
+      <span class="badge badge-green">Connect+</span>
+    </a>
+    <a href="connect-step1.html" class="screen-card">
+      <div class="screen-icon">🎯</div>
+      <div class="screen-number">Step 1</div>
+      <div class="screen-name">Brand Strategy</div>
+      <div class="screen-desc">3-year comms strategy brief, audience insights, and strategic insights.</div>
+      <span class="badge badge-green">Connect+</span>
+    </a>
+    <a href="connect-step2.html" class="screen-card">
+      <div class="screen-icon">📐</div>
+      <div class="screen-number">Step 2</div>
+      <div class="screen-name">Comms Strategy</div>
+      <div class="screen-desc">Long-term plan to drive Sales and Brand Power targets.</div>
+      <span class="badge badge-green">Connect+</span>
+    </a>
+    <a href="connect-step3.html" class="screen-card">
+      <div class="screen-icon">📅</div>
+      <div class="screen-number">Step 3</div>
+      <div class="screen-name">Comms Plan</div>
+      <div class="screen-desc">Annual TTL plan and calendar with launch into full demo flow.</div>
+      <span class="badge badge-green">Connect+</span>
+    </a>
+    <a href="connect-step4.html" class="screen-card">
+      <div class="screen-icon">✏️</div>
+      <div class="screen-number">Step 4</div>
+      <div class="screen-name">Initiative Development</div>
+      <div class="screen-desc">Creative development across Paid/Owned/Earned/Shared touchpoints.</div>
+      <span class="badge badge-green">Connect+</span>
+    </a>
+    <a href="connect-step5.html" class="screen-card">
+      <div class="screen-icon">🚀</div>
+      <div class="screen-number">Step 5</div>
+      <div class="screen-name">Initiative Activation</div>
+      <div class="screen-desc">Execution, performance analysis, and feedback loop back into strategy.</div>
+      <span class="badge badge-green">Connect+</span>
+    </a>
+  </div>
+</div>
+
+<div class="scenario-block">
+  <div class="scenario-title">Scenario 1 — Workfront Workflow</div>
+  <div class="screens-grid">
+    <a href="screen1.html" class="screen-card">
+      <div class="screen-icon">🏠</div>
+      <div class="screen-number">Screen 01</div>
+      <div class="screen-name">FreddyConnect Dashboard</div>
+      <div class="screen-desc">Welcome screen with active campaigns, notifications, and incoming Workfront brief alert.</div>
+      <span class="badge badge-green">Scenario 1</span>
+    </a>
+    <a href="screen2.html" class="screen-card">
+      <div class="screen-icon">📋</div>
+      <div class="screen-number">Screen 02</div>
+      <div class="screen-name">Adobe Workfront Brief</div>
+      <div class="screen-desc">Heineken Silver Q2 brief task view with approval workflow and WPP Open initiation.</div>
+      <span class="badge badge-green">Scenario 1</span>
+    </a>
+    <a href="screen3.html" class="screen-card">
+      <div class="screen-icon">⚡</div>
+      <div class="screen-number">Screen 03</div>
+      <div class="screen-name">Data Flow Animation</div>
+      <div class="screen-desc">Visual data flow from FreddyConnect/Workfront to WPP Open, triggering campaign tasks.</div>
+      <span class="badge badge-green">Scenario 1</span>
+    </a>
+    <a href="screen4.html" class="screen-card">
+      <div class="screen-icon">🔔</div>
+      <div class="screen-number">Screen 04</div>
+      <div class="screen-name">WPP Open Update</div>
+      <div class="screen-desc">FreddyConnect receives strategy draft from WPP Open. Workfront task status updates.</div>
+      <span class="badge badge-green">Scenario 1</span>
+    </a>
+    <a href="screen5.html" class="screen-card">
+      <div class="screen-icon">📄</div>
+      <div class="screen-number">Screen 05</div>
+      <div class="screen-name">Document Review</div>
+      <div class="screen-desc">Heineken user reviews the strategy document received from WPP Open with annotation tools.</div>
+      <span class="badge badge-green">Scenario 1</span>
+    </a>
+  </div>
+</div>
+
+<div class="scenario-block">
+  <div class="scenario-title">Scenario 2 — Agent to Agent</div>
+  <div class="screens-grid">
+    <a href="screen6.html" class="screen-card">
+      <div class="screen-icon">🤖</div>
+      <div class="screen-number">Screen 06</div>
+      <div class="screen-name">FreddyConnect Agent Hub</div>
+      <div class="screen-desc">Hub showing Heineken agents and WPP agency partner agents available for activation.</div>
+      <span class="badge badge-blue">Scenario 2</span>
+    </a>
+    <a href="screen7.html" class="screen-card">
+      <div class="screen-icon">💬</div>
+      <div class="screen-number">Screen 07</div>
+      <div class="screen-name">Agent Chat Interface</div>
+      <div class="screen-desc">Live chat with Marketing Insights Agent building the Heineken Silver brief, connecting to WPP.</div>
+      <span class="badge badge-blue">Scenario 2</span>
+    </a>
+    <a href="screen8.html" class="screen-card">
+      <div class="screen-icon">🔍</div>
+      <div class="screen-number">Screen 08</div>
+      <div class="screen-name">WPP Agent Discovery</div>
+      <div class="screen-desc">Agency agents library browser with WPP Briefing Agent selected for session launch.</div>
+      <span class="badge badge-blue">Scenario 2</span>
+    </a>
+    <a href="screen9.html" class="screen-card">
+      <div class="screen-icon">🔄</div>
+      <div class="screen-number">Screen 09</div>
+      <div class="screen-name">Agent-to-Agent Flow</div>
+      <div class="screen-desc">Visual split-screen showing FreddyConnect and WPP agents communicating in real time.</div>
+      <span class="badge badge-blue">Scenario 2</span>
+    </a>
+  </div>
+</div>
+
+<div class="footer">FreddyConnect · Heineken AI Platform · Storylane Demo · Confidential</div>
+</body>
+</html>

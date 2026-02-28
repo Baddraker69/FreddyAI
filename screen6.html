@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreddyConnect — Agent Hub</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f5f6f8; color: #1a1a2e; width: 1440px; min-height: 900px; }
+
+  .top-nav { height: 64px; background: #1a5c38; display: flex; align-items: center; padding: 0 24px; gap: 16px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+  .nav-brand { color: #fff; font-size: 18px; font-weight: 700; }
+  .nav-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .nav-avatar { width: 36px; height: 36px; background: #008542; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
+
+  .layout { display: flex; padding-top: 64px; }
+  .sidebar { width: 220px; background: #fff; border-right: 1px solid #e8eaed; padding: 24px 0; position: fixed; top: 64px; bottom: 0; left: 0; z-index: 90; }
+  .sidebar-section { padding: 0 12px; margin-bottom: 8px; }
+  .sidebar-label { font-size: 10px; font-weight: 700; color: #9ca3af; letter-spacing: 2px; text-transform: uppercase; padding: 0 12px 8px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; color: #6b7280; text-decoration: none; }
+  .sidebar-item:hover { background: #f0fdf4; color: #1a5c38; }
+  .sidebar-item.active { background: #f0fdf4; color: #1a5c38; font-weight: 600; }
+  .si-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .main { margin-left: 220px; padding: 32px 36px; flex: 1; }
+
+  /* PAGE HEADER */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 32px; }
+  .ph-title { font-size: 26px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+  .ph-sub { font-size: 14px; color: #6b7280; }
+  .new-agent-btn { background: #1a5c38; color: #fff; padding: 12px 22px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(26,92,56,0.3); transition: all 0.15s; }
+  .new-agent-btn:hover { background: #008542; transform: translateY(-1px); }
+
+  /* TAB ROW */
+  .tab-row { display: flex; gap: 4px; margin-bottom: 28px; background: #fff; padding: 4px; border-radius: 10px; border: 1px solid #e5e7eb; width: fit-content; }
+  .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; color: #6b7280; transition: all 0.15s; }
+  .tab.active { background: #1a5c38; color: #fff; }
+  .tab:hover:not(.active) { background: #f9fafb; color: #1a1a2e; }
+
+  /* AGENT COLUMNS */
+  .agent-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .col-title { font-size: 13px; font-weight: 800; color: #1a1a2e; letter-spacing: 0.5px; }
+  .col-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .cb-heineken { background: #dcfce7; color: #15803d; }
+  .cb-wpp { background: #dbeafe; color: #1d4ed8; }
+  .col-count { color: #9ca3af; font-size: 12px; }
+
+  /* AGENT CARDS */
+  .agent-card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 14px;
+    padding: 22px; margin-bottom: 14px; cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .agent-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.1); transform: translateY(-1px); }
+  .agent-card.active-card { border-color: #008542; box-shadow: 0 0 0 2px rgba(0,133,66,0.15); }
+  .agent-card.wpp-card:hover { border-color: #3b82f6; box-shadow: 0 6px 24px rgba(59,130,246,0.1); }
+  .agent-card-top { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; }
+  .agent-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .ai-green { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #86efac; }
+  .ai-blue { background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1px solid #93c5fd; }
+  .agent-info { flex: 1; }
+  .agent-name { font-size: 16px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .agent-desc { font-size: 13px; color: #6b7280; line-height: 1.4; }
+  .agent-status { display: flex; align-items: center; gap: 6px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-on { background: #10b981; box-shadow: 0 0 6px #10b981; }
+  .dot-idle { background: #d1d5db; }
+  .status-text { font-size: 11px; font-weight: 600; }
+  .st-on { color: #10b981; }
+  .st-idle { color: #9ca3af; }
+
+  .agent-capabilities { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .cap-tag { background: #f3f4f6; color: #374151; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; }
+  .cap-tag-green { background: #f0fdf4; color: #15803d; }
+  .cap-tag-blue { background: #eff6ff; color: #1d4ed8; }
+
+  .agent-metrics { display: flex; gap: 16px; padding-top: 14px; border-top: 1px solid #f3f4f6; }
+  .agent-metric { display: flex; flex-direction: column; }
+  .am-value { font-size: 15px; font-weight: 800; color: #1a1a2e; }
+  .am-label { font-size: 11px; color: #9ca3af; margin-top: 1px; }
+
+  .agent-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .agent-btn-primary { background: #1a5c38; color: #fff; padding: 9px 18px; border-radius: 8px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; flex: 1; transition: all 0.15s; }
+  .agent-btn-primary:hover { background: #008542; }
+  .agent-btn-secondary { background: #f3f4f6; color: #374151; padding: 9px 18px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .agent-btn-secondary:hover { background: #e5e7eb; }
+  .agent-btn-blue { background: #1d4ed8; color: #fff; padding: 9px 18px; border-radius: 8px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; flex: 1; transition: all 0.15s; }
+  .agent-btn-blue:hover { background: #1e40af; }
+
+  /* POWERED BY BADGE */
+  .powered-badge { position: absolute; top: 14px; right: 14px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .heineken-badge { position: absolute; top: 14px; right: 14px; background: #f0fdf4; border: 1px solid #86efac; color: #15803d; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+
+  /* CONNECT BANNER */
+  .connect-banner {
+    background: linear-gradient(135deg, #0f2a3f 0%, #0d1b2a 100%);
+    border: 1px solid rgba(59,130,246,0.2); border-radius: 14px; padding: 20px 24px;
+    display: flex; align-items: center; gap: 16px; color: #fff; margin-bottom: 24px;
+  }
+  .connect-banner-icon { font-size: 28px; }
+  .connect-banner-text { flex: 1; }
+  .connect-banner-title { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .connect-banner-sub { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .connect-banner-btn { background: #3b82f6; color: #fff; padding: 10px 20px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+
+  .screen-nav { position: fixed; bottom: 28px; right: 28px; display: flex; gap: 10px; z-index: 200; }
+  .snav-btn { background: #1a5c38; color: #fff; border: none; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; box-shadow: 0 4px 16px rgba(26,92,56,0.3); transition: all 0.15s; }
+  .snav-btn:hover { background: #008542; transform: translateY(-1px); }
+  .snav-btn.secondary { background: rgba(26,92,56,0.1); color: #1a5c38; box-shadow: none; border: 1px solid #008542; }
+  .screen-label { position: fixed; bottom: 28px; left: 28px; background: rgba(26,92,56,0.9); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; z-index: 200; }
+  .scenario-tag { color: #4caf50; }
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+    <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+  </svg>
+  <span style="color:rgba(255,255,255,0.4);font-size:20px;margin:0 3px;">|</span>
+  <span class="nav-brand">FreddyConnect</span>
+  <span style="color:rgba(255,255,255,0.4);margin-left:16px;font-size:13px;">→ Agent Hub</span>
+  <div class="nav-right">
+    <span style="background:rgba(76,175,80,0.2);color:#4caf50;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid rgba(76,175,80,0.3);">5 Agents Active</span>
+    <div class="nav-avatar">SD</div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <a class="sidebar-item" href="screen1.html"><span class="si-icon">⬛</span> Dashboard</a>
+      <a class="sidebar-item" href="#"><span class="si-icon">📁</span> Campaigns</a>
+      <a class="sidebar-item active" href="#"><span class="si-icon">🤖</span> Agents</a>
+      <a class="sidebar-item" href="screen2.html"><span class="si-icon">⚙️</span> Workfront</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="ph-title">Agent Hub</div>
+        <div class="ph-sub">Manage your FreddyConnect agents and connect with agency partner agents</div>
+      </div>
+      <button class="new-agent-btn">+ Configure New Agent</button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tab-row">
+      <div class="tab active">All Agents</div>
+      <div class="tab">FreddyConnect</div>
+      <div class="tab">Agency Partners</div>
+      <div class="tab">Marketplace</div>
+    </div>
+
+    <!-- CONNECT BANNER -->
+    <div class="connect-banner">
+      <div class="connect-banner-icon">🔗</div>
+      <div class="connect-banner-text">
+        <div class="connect-banner-title">Agency Partner Integration Active</div>
+        <div class="connect-banner-sub">WPP Open agents are connected via secure API. All data exchanges are end-to-end encrypted and logged.</div>
+      </div>
+      <button class="connect-banner-btn" onclick="window.location.href='screen9.html'">View Live Connection →</button>
+    </div>
+
+    <!-- COLUMNS -->
+    <div class="agent-columns">
+
+      <!-- FREDDY AGENTS -->
+      <div>
+        <div class="col-header">
+          <div>
+            <div class="col-title">FreddyConnect Agents</div>
+            <div class="col-count" style="margin-top:2px;">3 agents · Heineken proprietary</div>
+          </div>
+          <span class="col-badge cb-heineken">
+            <svg width="12" height="12" viewBox="0 0 40 40"><polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/></svg>
+            Heineken
+          </span>
+        </div>
+
+        <!-- MARKETING INSIGHTS AGENT -->
+        <div class="agent-card active-card" onclick="window.location.href='screen7.html'">
+          <span class="heineken-badge">Heineken · Active</span>
+          <div class="agent-card-top">
+            <div class="agent-icon ai-green">🧠</div>
+            <div class="agent-info">
+              <div class="agent-name">Marketing Insights Agent</div>
+              <div class="agent-desc">Deep market analysis, consumer insights, and competitive intelligence across all Heineken markets. Connects to proprietary data sources and third-party research.</div>
+            </div>
+          </div>
+          <div class="agent-capabilities">
+            <span class="cap-tag-green">Consumer Analysis</span>
+            <span class="cap-tag-green">Market Intelligence</span>
+            <span class="cap-tag-green">Trend Forecasting</span>
+            <span class="cap-tag-green">Competitive Intel</span>
+          </div>
+          <div class="agent-metrics">
+            <div class="agent-metric"><div class="am-value">1,284</div><div class="am-label">Insights Generated</div></div>
+            <div class="agent-metric"><div class="am-value">4.8 ★</div><div class="am-label">User Rating</div></div>
+            <div class="agent-metric"><div class="am-value" style="color:#10b981;">Active</div><div class="am-label">Status</div></div>
+          </div>
+          <div class="agent-actions">
+            <button class="agent-btn-primary" onclick="event.stopPropagation();window.location.href='screen7.html'">Open Chat →</button>
+            <button class="agent-btn-secondary" onclick="event.stopPropagation();">Configure</button>
+          </div>
+        </div>
+
+        <!-- ROI ENGINE -->
+        <div class="agent-card">
+          <span class="heineken-badge">Heineken · Idle</span>
+          <div class="agent-card-top">
+            <div class="agent-icon ai-green">📊</div>
+            <div class="agent-info">
+              <div class="agent-name">ROI Engine Agent</div>
+              <div class="agent-desc">Campaign performance modelling, ROI forecasting, and budget optimisation. Integrates with Heineken's finance and analytics stack.</div>
+            </div>
+          </div>
+          <div class="agent-capabilities">
+            <span class="cap-tag-green">ROI Modeling</span>
+            <span class="cap-tag-green">Budget Optimisation</span>
+            <span class="cap-tag-green">Performance Tracking</span>
+          </div>
+          <div class="agent-metrics">
+            <div class="agent-metric"><div class="am-value">892</div><div class="am-label">Models Run</div></div>
+            <div class="agent-metric"><div class="am-value">4.7 ★</div><div class="am-label">User Rating</div></div>
+            <div class="agent-metric"><div class="am-value" style="color:#9ca3af;">Idle</div><div class="am-label">Status</div></div>
+          </div>
+          <div class="agent-actions">
+            <button class="agent-btn-primary">Launch Agent</button>
+            <button class="agent-btn-secondary">Configure</button>
+          </div>
+        </div>
+
+        <!-- MARKETING ENGINE -->
+        <div class="agent-card">
+          <span class="heineken-badge">Heineken · Idle</span>
+          <div class="agent-card-top">
+            <div class="agent-icon ai-green">🎯</div>
+            <div class="agent-info">
+              <div class="agent-name">Marketing Engine Agent</div>
+              <div class="agent-desc">Campaign orchestration, channel activation, and cross-market coordination. Manages workflows from brief to execution.</div>
+            </div>
+          </div>
+          <div class="agent-capabilities">
+            <span class="cap-tag-green">Campaign Orchestration</span>
+            <span class="cap-tag-green">Channel Activation</span>
+            <span class="cap-tag-green">Multi-market Coord.</span>
+          </div>
+          <div class="agent-metrics">
+            <div class="agent-metric"><div class="am-value">342</div><div class="am-label">Campaigns Run</div></div>
+            <div class="agent-metric"><div class="am-value">4.9 ★</div><div class="am-label">User Rating</div></div>
+            <div class="agent-metric"><div class="am-value" style="color:#9ca3af;">Idle</div><div class="am-label">Status</div></div>
+          </div>
+          <div class="agent-actions">
+            <button class="agent-btn-primary">Launch Agent</button>
+            <button class="agent-btn-secondary">Configure</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- WPP AGENTS -->
+      <div>
+        <div class="col-header">
+          <div>
+            <div class="col-title">Agency Partner Agents</div>
+            <div class="col-count" style="margin-top:2px;">4 agents · WPP Open</div>
+          </div>
+          <span class="col-badge cb-wpp">🔵 WPP Open</span>
+        </div>
+
+        <!-- WPP BRIEFING -->
+        <div class="agent-card wpp-card" onclick="window.location.href='screen8.html'">
+          <span class="powered-badge">Powered by WPP Open</span>
+          <div class="agent-card-top">
+            <div class="agent-icon ai-blue">🔍</div>
+            <div class="agent-info">
+              <div class="agent-name">WPP Briefing Agent</div>
+              <div class="agent-desc">Transforms campaign briefs into comprehensive strategic frameworks. Analyses market context, audience data, and competitive landscape to build actionable briefs.</div>
+            </div>
+          </div>
+          <div class="agent-capabilities">
+            <span class="cap-tag-blue">Brief Analysis</span>
+            <span class="cap-tag-blue">Strategic Framework</span>
+            <span class="cap-tag-blue">Market Context</span>
+            <span class="cap-tag-blue">Audience Profiling</span>
+          </div>
+          <div class="agent-metrics">
+            <div class="agent-metric"><div class="am-value">847</div><div class="am-label">Briefs Processed</div></div>
+            <div class="agent-metric"><div class="am-value">4.9 ★</div><div class="am-label">User Rating</div></div>
+            <div class="agent-metric"><div class="am-value" style="color:#3b82f6;">Connected</div><div class="am-label">Status</div></div>
+          </div>
+          <div class="agent-actions">
+            <button class="agent-btn-blue" onclick="event.stopPropagation();window.location.href='screen8.html'">View Details →</button>
+            <button class="agent-btn-secondary" onclick="event.stopPropagation();window.location.href='screen9.html'">Connect</button>
+          </div>
+        </div>
+
+        <!-- WPP PLANNING -->
+        <div class="agent-card wpp-card">
+          <span class="powered-badge">Powered by WPP Open</span>
+          <div class="agent-card-top">
+            <div class="agent-icon ai-blue">💡</div>
+            <div class="agent-info">
+              <div class="agent-name">WPP Planning Agent</div>
+              <div class="agent-desc">Develops integrated comms planning frameworks, channel strategy recommendations, and brand positioning options based on brief inputs and market data.</div>
+            </div>
+          </div>
+          <div class="agent-capabilities">
+            <span class="cap-tag-blue">Comms Planning</span>
+            <span class="cap-tag-blue">Channel Strategy</span>
+            <span class="cap-tag-blue">Brand Positioning</span>
+          </div>
+          <div class="agent-metrics">
+            <div class="agent-metric"><div class="am-value">623</div><div class="am-label">Plans Created</div></div>
+            <div class="agent-metric"><div class="am-value">4.8 ★</div><div class="am-label">User Rating</div></div>
+            <div class="agent-metric"><div class="am-value" style="color:#3b82f6;">Active</div><div class="am-label">Status</div></div>
+          </div>
+          <div class="agent-actions">
+            <button class="agent-btn-blue">View Details</button>
+            <button class="agent-btn-secondary">Connect</button>
+          </div>
+        </div>
+
+        <!-- WPP PERFORMANCE -->
+        <div class="agent-card wpp-card">
+          <span class="powered-badge">Powered by WPP Open</span>
+          <div class="agent-card-top">
+            <div class="agent-icon ai-blue">📈</div>
+            <div class="agent-info">
+              <div class="agent-name">WPP Performance Agent</div>
+              <div class="agent-desc">Tracks campaign effectiveness, delivers ROI analysis, and generates short, mid, and long-term performance insights to feed back into the planning process.</div>
+            </div>
+          </div>
+          <div class="agent-capabilities">
+            <span class="cap-tag-blue">Campaign Effectiveness</span>
+            <span class="cap-tag-blue">ROI Analysis</span>
+            <span class="cap-tag-blue">Performance Insights</span>
+          </div>
+          <div class="agent-metrics">
+            <div class="agent-metric"><div class="am-value">418</div><div class="am-label">Reports Generated</div></div>
+            <div class="agent-metric"><div class="am-value">4.8 ★</div><div class="am-label">User Rating</div></div>
+            <div class="agent-metric"><div class="am-value" style="color:#9ca3af;">Idle</div><div class="am-label">Status</div></div>
+          </div>
+          <div class="agent-actions">
+            <button class="agent-btn-blue">View Details</button>
+            <button class="agent-btn-secondary">Connect</button>
+          </div>
+        </div>
+
+        <!-- WPP PRODUCTION -->
+        <div class="agent-card wpp-card">
+          <span class="powered-badge">Powered by WPP Open</span>
+          <div class="agent-card-top">
+            <div class="agent-icon ai-blue">🎬</div>
+            <div class="agent-info">
+              <div class="agent-name">WPP Production Agent</div>
+              <div class="agent-desc">Manages production workflows, creative asset coordination, and delivery tracking across WPP's global production network.</div>
+            </div>
+          </div>
+          <div class="agent-capabilities">
+            <span class="cap-tag-blue">Production Workflow</span>
+            <span class="cap-tag-blue">Asset Management</span>
+            <span class="cap-tag-blue">Delivery Tracking</span>
+          </div>
+          <div class="agent-metrics">
+            <div class="agent-metric"><div class="am-value">1,102</div><div class="am-label">Jobs Managed</div></div>
+            <div class="agent-metric"><div class="am-value">4.7 ★</div><div class="am-label">User Rating</div></div>
+            <div class="agent-metric"><div class="am-value" style="color:#9ca3af;">Idle</div><div class="am-label">Status</div></div>
+          </div>
+          <div class="agent-actions">
+            <button class="agent-btn-blue">View Details</button>
+            <button class="agent-btn-secondary">Connect</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="screen-label"><span class="scenario-tag">Scenario 2</span> · Screen 06 of 09</div>
+<div class="screen-nav">
+  <a href="screen5.html" class="snav-btn secondary">← Doc Review</a>
+  <a href="index.html" class="snav-btn secondary">⊞ All Screens</a>
+  <a href="screen7.html" class="snav-btn">Next: Agent Chat →</a>
+</div>
+</body>
+</html>

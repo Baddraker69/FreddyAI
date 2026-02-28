@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreddyConnect — Agent Chat</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f5f6f8; color: #1a1a2e; width: 1440px; height: 100vh; overflow: hidden; }
+
+  .top-nav { height: 56px; background: #1a5c38; display: flex; align-items: center; padding: 0 24px; gap: 12px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+  .nav-brand { color: #fff; font-size: 16px; font-weight: 700; }
+  .nav-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .nav-avatar { width: 32px; height: 32px; background: #008542; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; }
+
+  /* CHAT LAYOUT */
+  .chat-layout { display: flex; height: 100vh; padding-top: 56px; }
+
+  /* LEFT: AGENT DETAILS */
+  .agent-panel {
+    width: 300px; background: #fff; border-right: 1px solid #e8eaed;
+    display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
+  }
+  .agent-panel-header {
+    padding: 24px; background: linear-gradient(160deg, #0f2a1a, #1a5c38);
+    color: #fff; text-align: center;
+  }
+  .ap-icon { width: 64px; height: 64px; background: rgba(255,255,255,0.15); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 12px; }
+  .ap-name { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+  .ap-type { font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 12px; }
+  .ap-status { display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.3); padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; color: #10b981; }
+  .ap-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981; animation: blink 2s ease infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .ap-section { padding: 16px 20px; border-bottom: 1px solid #f3f4f6; }
+  .ap-section-title { font-size: 11px; font-weight: 700; color: #9ca3af; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .ap-capability { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; color: #374151; }
+  .cap-check { color: #008542; font-size: 12px; }
+  .data-source { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f9fafb; border-radius: 6px; margin-bottom: 6px; font-size: 12px; color: #374151; }
+  .ds-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; flex-shrink: 0; }
+
+  /* WPP CONNECTION BADGE */
+  .wpp-connected {
+    margin: 16px; background: #eff6ff; border: 1px solid #93c5fd;
+    border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+    animation: slideIn 0.5s ease;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+  .wpp-connected-icon { font-size: 18px; }
+  .wpp-connected-text { font-size: 12px; font-weight: 700; color: #1d4ed8; }
+  .wpp-connected-sub { font-size: 11px; color: #3b82f6; }
+
+  /* SESSIONS LIST */
+  .session-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid #f9fafb; transition: all 0.15s; }
+  .session-item:hover { background: #f9fafb; }
+  .session-item.active-session { background: #f0fdf4; }
+  .session-icon { width: 28px; height: 28px; border-radius: 8px; background: #dcfce7; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .session-name { font-size: 12px; font-weight: 600; color: #1a1a2e; }
+  .session-time { font-size: 10px; color: #9ca3af; }
+
+  /* CENTER: CHAT */
+  .chat-area { flex: 1; display: flex; flex-direction: column; background: #f5f6f8; overflow: hidden; }
+  .chat-header { background: #fff; padding: 14px 24px; border-bottom: 1px solid #e8eaed; display: flex; align-items: center; gap: 12px; }
+  .chat-agent-icon { width: 36px; height: 36px; background: #dcfce7; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .chat-agent-name { font-size: 14px; font-weight: 700; color: #1a1a2e; }
+  .chat-agent-status { font-size: 12px; color: #10b981; }
+  .chat-context { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .ctx-tag { background: #f3f4f6; color: #374151; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+
+  .chat-messages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* MESSAGES */
+  .msg-row { display: flex; gap: 12px; max-width: 80%; }
+  .msg-row.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .avatar-agent { background: #1a5c38; color: #fff; }
+  .avatar-user { background: #3b82f6; color: #fff; }
+  .msg-bubble { padding: 14px 18px; border-radius: 14px; font-size: 14px; line-height: 1.6; }
+  .bubble-agent { background: #fff; border: 1px solid #e5e7eb; color: #1a1a2e; border-radius: 4px 14px 14px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .bubble-user { background: #1a5c38; color: #fff; border-radius: 14px 4px 14px 14px; }
+  .msg-meta { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+  .msg-row.user .msg-meta { text-align: right; }
+
+  /* DATA CARD IN CHAT */
+  .data-card-inline {
+    background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px;
+    padding: 14px 16px; margin-top: 12px; font-size: 13px;
+  }
+  .dci-title { font-size: 11px; font-weight: 700; color: #15803d; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .dci-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; color: #1a1a2e; }
+  .dci-dot { width: 6px; height: 6px; border-radius: 50%; background: #008542; flex-shrink: 0; }
+
+  /* CONNECTING INDICATOR */
+  .connecting-indicator {
+    display: flex; align-items: center; gap: 10px; padding: 14px 18px;
+    background: #eff6ff; border: 1px solid #93c5fd; border-radius: 14px;
+    font-size: 13px; color: #1d4ed8; font-weight: 600;
+  }
+  .spinner { width: 16px; height: 16px; border: 2px solid #dbeafe; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* WPP CONNECTED BUBBLE */
+  .wpp-bubble {
+    background: #eff6ff; border: 1px solid #93c5fd; border-radius: 10px;
+    padding: 12px 16px; margin-top: 10px; display: flex; align-items: center; gap: 10px;
+  }
+  .wpp-bubble-icon { width: 28px; height: 28px; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #1d4ed8; font-family: serif; }
+  .wpp-bubble-text { font-size: 13px; font-weight: 700; color: #1d4ed8; }
+  .wpp-bubble-sub { font-size: 11px; color: #3b82f6; }
+
+  /* INPUT AREA */
+  .chat-input-area { background: #fff; border-top: 1px solid #e8eaed; padding: 16px 24px; }
+  .input-tools { display: flex; gap: 8px; margin-bottom: 10px; }
+  .input-tool { padding: 5px 12px; background: #f3f4f6; border-radius: 20px; font-size: 11px; font-weight: 600; color: #374151; cursor: pointer; border: none; transition: all 0.15s; }
+  .input-tool:hover { background: #e5e7eb; }
+  .input-tool.active { background: #dcfce7; color: #15803d; }
+  .input-row { display: flex; gap: 10px; align-items: flex-end; }
+  .chat-input {
+    flex: 1; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 12px;
+    font-size: 14px; font-family: inherit; resize: none; height: 48px; line-height: 1.4;
+    color: #374151;
+  }
+  .chat-input:focus { outline: none; border-color: #008542; box-shadow: 0 0 0 3px rgba(0,133,66,0.1); }
+  .send-btn { width: 48px; height: 48px; background: #1a5c38; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: all 0.15s; flex-shrink: 0; }
+  .send-btn:hover { background: #008542; }
+
+  .screen-nav { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 8px; z-index: 200; }
+  .snav-btn { background: #1a5c38; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; box-shadow: 0 4px 12px rgba(26,92,56,0.3); transition: all 0.15s; }
+  .snav-btn:hover { background: #008542; }
+  .snav-btn.secondary { background: rgba(26,92,56,0.1); color: #1a5c38; box-shadow: none; border: 1px solid #008542; }
+  .screen-label { position: fixed; bottom: 20px; left: 20px; background: rgba(26,92,56,0.9); color: #fff; padding: 6px 14px; border-radius: 6px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; z-index: 200; }
+  .scenario-tag { color: #4caf50; }
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+    <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+  </svg>
+  <span style="color:rgba(255,255,255,0.4);font-size:18px;margin:0 3px;">|</span>
+  <span class="nav-brand">FreddyConnect</span>
+  <span style="color:rgba(255,255,255,0.4);margin-left:12px;font-size:13px;">→ Marketing Insights Agent</span>
+  <div class="nav-right">
+    <a href="screen6.html" style="color:rgba(255,255,255,0.7);font-size:12px;text-decoration:none;">← Back to Agent Hub</a>
+    <div class="nav-avatar">SD</div>
+  </div>
+</nav>
+
+<div class="chat-layout">
+  <!-- AGENT PANEL -->
+  <div class="agent-panel">
+    <div class="agent-panel-header">
+      <div class="ap-icon">🧠</div>
+      <div class="ap-name">Marketing Insights Agent</div>
+      <div class="ap-type">FreddyConnect · Heineken Proprietary</div>
+      <div class="ap-status"><div class="ap-status-dot"></div> Online · Processing</div>
+    </div>
+
+    <!-- WPP CONNECTED -->
+    <div class="wpp-connected">
+      <div class="wpp-connected-icon">🔗</div>
+      <div>
+        <div class="wpp-connected-text">WPP Briefing Agent</div>
+        <div class="wpp-connected-sub">Connected · Live session</div>
+      </div>
+      <div style="width:8px;height:8px;border-radius:50%;background:#3b82f6;box-shadow:0 0 6px #3b82f6;margin-left:auto;"></div>
+    </div>
+
+    <div class="ap-section">
+      <div class="ap-section-title">Capabilities</div>
+      <div class="ap-capability"><span class="cap-check">✓</span> Consumer analysis & segmentation</div>
+      <div class="ap-capability"><span class="cap-check">✓</span> Market intelligence & trends</div>
+      <div class="ap-capability"><span class="cap-check">✓</span> Competitive landscape analysis</div>
+      <div class="ap-capability"><span class="cap-check">✓</span> Brief generation & population</div>
+      <div class="ap-capability"><span class="cap-check">✓</span> Agency agent connectivity</div>
+    </div>
+
+    <div class="ap-section">
+      <div class="ap-section-title">Active Data Sources</div>
+      <div class="data-source"><div class="ds-dot"></div> Heineken Global Consumer Panel</div>
+      <div class="data-source"><div class="ds-dot"></div> EUR Market Performance Data</div>
+      <div class="data-source"><div class="ds-dot"></div> Nielsen Competitive Intelligence</div>
+      <div class="data-source"><div class="ds-dot"></div> Mintel Trend Reports</div>
+      <div class="data-source"><div class="ds-dot" style="background:#3b82f6;"></div> WPP Open · Brief Framework DB</div>
+    </div>
+
+    <div class="ap-section">
+      <div class="ap-section-title">Current Session</div>
+      <div class="session-item active-session">
+        <div class="session-icon">⭐</div>
+        <div>
+          <div class="session-name">Heineken Silver Q2 Brief</div>
+          <div class="session-time">Active · 18 mins</div>
+        </div>
+      </div>
+      <div class="session-item">
+        <div class="session-icon" style="background:#e0e7ff;">📊</div>
+        <div>
+          <div class="session-name">Desperados EUR Market</div>
+          <div class="session-time">Yesterday</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT AREA -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <div class="chat-agent-icon">🧠</div>
+      <div>
+        <div class="chat-agent-name">Marketing Insights Agent</div>
+        <div class="chat-agent-status">● Active · Heineken Silver Q2 Brief Session</div>
+      </div>
+      <div class="chat-context">
+        <span class="ctx-tag">📋 Heineken Silver Q2</span>
+        <span class="ctx-tag">🌍 EUR Market</span>
+        <span class="ctx-tag" style="background:#dbeafe;color:#1d4ed8;">🔗 WPP Connected</span>
+      </div>
+    </div>
+
+    <div class="chat-messages">
+
+      <!-- AGENT GREETING -->
+      <div class="msg-row">
+        <div class="msg-avatar avatar-agent">🧠</div>
+        <div>
+          <div class="msg-bubble bubble-agent">
+            Hello Sarah! I'm ready to help you build the Heineken Silver Q2 2026 brief. I have access to the latest EUR market data and your current brand performance metrics. What would you like to start with?
+          </div>
+          <div class="msg-meta">Marketing Insights Agent · 9:42 AM</div>
+        </div>
+      </div>
+
+      <!-- USER MESSAGE 1 -->
+      <div class="msg-row user">
+        <div class="msg-avatar avatar-user">SD</div>
+        <div>
+          <div class="msg-bubble bubble-user">I need to complete the Heineken Silver brief for Q2 2026. Can you help me with insights for the EUR market?</div>
+          <div class="msg-meta">Sarah Donovan · 9:43 AM</div>
+        </div>
+      </div>
+
+      <!-- AGENT RESPONSE WITH DATA -->
+      <div class="msg-row">
+        <div class="msg-avatar avatar-agent">🧠</div>
+        <div style="max-width:600px;">
+          <div class="msg-bubble bubble-agent">
+            Absolutely. I've pulled the latest Heineken Silver performance data for EUR. Here are the key findings:
+
+            <div class="data-card-inline">
+              <div class="dci-title">EUR Market Intelligence · Heineken Silver</div>
+              <div class="dci-item"><div class="dci-dot"></div> <strong>Over-indexing:</strong> 25–34 male consumers in NL (idx 142), DE (138), FR (129)</div>
+              <div class="dci-item"><div class="dci-dot"></div> <strong>Seasonality:</strong> 34% volume uplift May–July (outdoor/terrace occasions)</div>
+              <div class="dci-item"><div class="dci-dot"></div> <strong>Competitive threat:</strong> Peroni +8% share, Corona +6% in premium lager segment</div>
+              <div class="dci-item"><div class="dci-dot"></div> <strong>Consumer sentiment:</strong> 71% associate Silver with "quality without premium price"</div>
+              <div class="dci-item"><div class="dci-dot"></div> <strong>Digital:</strong> 78% of target audience daily social media users</div>
+            </div>
+
+            <div style="margin-top:12px;">Recommended positioning: <strong>"Refreshingly Distinctive"</strong> — premium but accessible. Shall I populate the brief with these insights?</div>
+          </div>
+          <div class="msg-meta">Marketing Insights Agent · 9:43 AM · Data sources: Heineken Panel, Nielsen EUR</div>
+        </div>
+      </div>
+
+      <!-- USER MESSAGE 2 -->
+      <div class="msg-row user">
+        <div class="msg-avatar avatar-user">SD</div>
+        <div>
+          <div class="msg-bubble bubble-user">Yes, and can you also access the WPP Briefing Agent for their strategic framework?</div>
+          <div class="msg-meta">Sarah Donovan · 9:44 AM</div>
+        </div>
+      </div>
+
+      <!-- AGENT CONNECTING -->
+      <div class="msg-row">
+        <div class="msg-avatar avatar-agent">🧠</div>
+        <div>
+          <div class="msg-bubble bubble-agent">
+            Of course! Initiating connection to WPP Briefing Agent now...
+
+            <div class="connecting-indicator" style="margin-top:12px;">
+              <div class="spinner"></div>
+              Connecting to WPP Briefing Agent via Secure API Bridge...
+            </div>
+
+            <div class="wpp-bubble" style="margin-top:10px;">
+              <div class="wpp-bubble-icon">W</div>
+              <div>
+                <div class="wpp-bubble-text">WPP Briefing Agent Connected ✓</div>
+                <div class="wpp-bubble-sub">Sharing brief data · Requesting strategic framework template</div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;color:#374151;">I'm now sharing the EUR market insights with WPP Briefing Agent and requesting their strategic framework. This will allow us to populate the brief with both Heineken's consumer data and WPP's strategic methodology simultaneously.</div>
+          </div>
+          <div class="msg-meta">Marketing Insights Agent · 9:44 AM</div>
+        </div>
+      </div>
+
+      <!-- AGENT FINAL -->
+      <div class="msg-row">
+        <div class="msg-avatar avatar-agent">🧠</div>
+        <div style="max-width:580px;">
+          <div class="msg-bubble bubble-agent">
+            <strong>Brief populated successfully.</strong> Here's what's been filled in with combined data from Heineken insights and WPP's strategic framework:
+
+            <div class="data-card-inline">
+              <div class="dci-title">Brief Population Summary</div>
+              <div class="dci-item"><div class="dci-dot"></div> Campaign objective — drafted from performance data</div>
+              <div class="dci-item"><div class="dci-dot"></div> Audience profile — EUR segments with behavioral data</div>
+              <div class="dci-item"><div class="dci-dot" style="background:#3b82f6;"></div> Strategic framework — from WPP Briefing Agent</div>
+              <div class="dci-item"><div class="dci-dot" style="background:#3b82f6;"></div> Creative direction — WPP brief template applied</div>
+              <div class="dci-item"><div class="dci-dot"></div> Market priorities — EUR/AMER/APAC allocation model</div>
+            </div>
+
+            <div style="margin-top:12px;">Ready to review and send to Adobe Workfront for approval?</div>
+          </div>
+          <div class="msg-meta">Marketing Insights Agent · 9:45 AM · Co-authored with WPP Briefing Agent</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- INPUT AREA -->
+    <div class="chat-input-area">
+      <div class="input-tools">
+        <button class="input-tool active">🧠 Insights Mode</button>
+        <button class="input-tool">📋 Brief Mode</button>
+        <button class="input-tool">📊 Data Mode</button>
+        <button class="input-tool" style="background:#dbeafe;color:#1d4ed8;">🔗 WPP Connected</button>
+      </div>
+      <div class="input-row">
+        <textarea class="chat-input" placeholder="Ask for insights, populate the brief, connect to agency agents..."></textarea>
+        <button class="send-btn">→</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="screen-label"><span class="scenario-tag">Scenario 2</span> · Screen 07 of 09</div>
+<div class="screen-nav">
+  <a href="screen6.html" class="snav-btn secondary">← Agent Hub</a>
+  <a href="index.html" class="snav-btn secondary">⊞</a>
+  <a href="screen8.html" class="snav-btn">Next: WPP Agent Discovery →</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreddyConnect — Document Review</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f5f6f8; color: #1a1a2e; width: 1440px; min-height: 900px; }
+
+  .top-nav { height: 56px; background: #1a5c38; display: flex; align-items: center; padding: 0 24px; gap: 12px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+  .nav-brand { color: #fff; font-size: 16px; font-weight: 700; }
+  .doc-nav-title { color: rgba(255,255,255,0.8); font-size: 14px; margin-left: 8px; }
+  .nav-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .nav-avatar { width: 32px; height: 32px; background: #008542; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; }
+
+  /* THREE-PANEL LAYOUT */
+  .doc-layout { display: flex; padding-top: 56px; height: 100vh; overflow: hidden; }
+
+  /* LEFT TOOLS */
+  .tools-panel {
+    width: 60px; background: #1a1a2e; display: flex; flex-direction: column;
+    align-items: center; padding: 16px 0; gap: 4px; flex-shrink: 0;
+  }
+  .tool-btn {
+    width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; font-size: 16px; transition: all 0.15s;
+    color: rgba(255,255,255,0.5);
+  }
+  .tool-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .tool-btn.active { background: rgba(0,133,66,0.3); color: #4caf50; }
+  .tool-divider { width: 32px; height: 1px; background: rgba(255,255,255,0.1); margin: 6px 0; }
+
+  /* DOCUMENT AREA */
+  .doc-area {
+    flex: 1; overflow-y: auto; background: #e8e8e8; padding: 32px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .doc-page {
+    background: #fff; width: 760px; min-height: 900px; border-radius: 4px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15); padding: 64px 72px;
+    position: relative;
+  }
+  .doc-top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 48px; padding-bottom: 24px; border-bottom: 3px solid #1a5c38;
+  }
+  .doc-brand { display: flex; align-items: center; gap: 10px; }
+  .doc-brand-name { font-size: 12px; font-weight: 800; color: #1a5c38; letter-spacing: 2px; text-transform: uppercase; }
+  .doc-version { background: #dbeafe; color: #1d4ed8; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .doc-title { font-size: 28px; font-weight: 900; color: #1a1a2e; margin-bottom: 6px; line-height: 1.2; }
+  .doc-subtitle { font-size: 16px; color: #008542; font-weight: 600; margin-bottom: 24px; }
+  .doc-meta-row { display: flex; gap: 24px; margin-bottom: 40px; padding: 16px; background: #f9fafb; border-radius: 8px; }
+  .doc-meta-item { }
+  .doc-meta-label { font-size: 10px; font-weight: 700; color: #9ca3af; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+  .doc-meta-value { font-size: 13px; font-weight: 600; color: #1a1a2e; }
+
+  .doc-section { margin-bottom: 36px; }
+  .doc-section-number { font-size: 11px; font-weight: 800; color: #008542; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .doc-section-title { font-size: 18px; font-weight: 800; color: #1a1a2e; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #f3f4f6; }
+  .doc-body { font-size: 14px; color: #374151; line-height: 1.75; margin-bottom: 14px; }
+  .doc-highlight {
+    background: #f0fdf4; border-left: 4px solid #008542; padding: 14px 18px;
+    border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 14px; color: #1a5c38; font-weight: 500;
+  }
+  .doc-bullets { margin: 12px 0 12px 20px; }
+  .doc-bullets li { font-size: 14px; color: #374151; margin-bottom: 6px; line-height: 1.6; }
+  .doc-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  .doc-table th { background: #1a5c38; color: #fff; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; }
+  .doc-table td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; color: #374151; }
+  .doc-table tr:hover td { background: #f9fafb; }
+
+  /* ANNOTATION */
+  .annotation {
+    position: absolute; right: -180px; background: #fef9c3; border: 1px solid #fde047;
+    border-radius: 8px; padding: 10px 12px; width: 160px; font-size: 11px; color: #713f12;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .annotation::before { content: ''; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 8px solid #fde047; }
+  .annotation-author { font-weight: 700; font-size: 10px; color: #92400e; margin-bottom: 4px; }
+
+  /* RIGHT PANEL */
+  .review-panel {
+    width: 320px; background: #fff; border-left: 1px solid #e5e7eb;
+    display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
+  }
+  .rp-section { padding: 20px; border-bottom: 1px solid #f3f4f6; }
+  .rp-title { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 12px; }
+  .rp-sub { font-size: 11px; color: #9ca3af; margin-bottom: 14px; }
+
+  .action-btn {
+    display: flex; align-items: center; gap: 8px; padding: 12px 16px;
+    border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: none; width: 100%; margin-bottom: 8px; transition: all 0.15s;
+  }
+  .btn-approve { background: #1a5c38; color: #fff; }
+  .btn-approve:hover { background: #008542; }
+  .btn-changes { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+  .btn-changes:hover { background: #fde68a; }
+  .btn-feedback { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .btn-feedback:hover { background: #bfdbfe; }
+
+  .comment-input { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; font-family: inherit; resize: none; height: 80px; color: #374151; }
+  .comment-input:focus { outline: none; border-color: #008542; }
+  .send-comment-btn { background: #1a5c38; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px; }
+
+  .doc-info-item { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; border-bottom: 1px solid #f9fafb; }
+  .dii-label { color: #9ca3af; }
+  .dii-value { color: #1a1a2e; font-weight: 600; }
+
+  .section-progress { display: flex; flex-direction: column; gap: 6px; }
+  .sp-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .sp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .sp-name { flex: 1; color: #374151; }
+  .sp-status { color: #9ca3af; font-size: 11px; }
+
+  .screen-nav { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 8px; z-index: 200; }
+  .snav-btn { background: #1a5c38; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; box-shadow: 0 4px 12px rgba(26,92,56,0.3); transition: all 0.15s; }
+  .snav-btn:hover { background: #008542; }
+  .snav-btn.secondary { background: rgba(26,92,56,0.1); color: #1a5c38; box-shadow: none; border: 1px solid #008542; }
+  .screen-label { position: fixed; bottom: 20px; left: 20px; background: rgba(26,92,56,0.9); color: #fff; padding: 6px 14px; border-radius: 6px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; z-index: 200; }
+  .scenario-tag { color: #4caf50; }
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+    <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+  </svg>
+  <span style="color:rgba(255,255,255,0.4);font-size:18px;margin:0 3px;">|</span>
+  <span class="nav-brand">FreddyConnect</span>
+  <span style="color:rgba(255,255,255,0.4);margin:0 6px;">›</span>
+  <span class="doc-nav-title">Tecate Light Mexico 2026 'De Aqui Pa' Donde?' — Comms Plan v1.0</span>
+  <div class="nav-right">
+    <span style="background:#dcfce7;color:#15803d;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;">From WPP Open</span>
+    <div style="display:flex;gap:6px;">
+      <button style="background:rgba(255,255,255,0.15);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Share</button>
+      <button style="background:rgba(255,255,255,0.15);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Download PDF</button>
+    </div>
+    <div class="nav-avatar">SD</div>
+  </div>
+</nav>
+
+<div class="doc-layout">
+  <!-- TOOL PANEL -->
+  <div class="tools-panel">
+    <div class="tool-btn active" title="Select">↖</div>
+    <div class="tool-btn" title="Highlight">🖊</div>
+    <div class="tool-btn" title="Comment">💬</div>
+    <div class="tool-btn" title="Annotate">✏️</div>
+    <div class="tool-divider"></div>
+    <div class="tool-btn" title="Zoom In">+</div>
+    <div class="tool-btn" title="Zoom Out">-</div>
+    <div class="tool-divider"></div>
+    <div class="tool-btn" title="Bookmark">🔖</div>
+    <div class="tool-btn" title="Print">🖨</div>
+  </div>
+
+  <!-- DOCUMENT -->
+  <div class="doc-area">
+    <div class="doc-page">
+
+      <!-- DOC HEADER -->
+      <div class="doc-top-bar">
+        <div class="doc-brand">
+          <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
+            <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+          </svg>
+          <span class="doc-brand-name">Heineken · Confidential</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="doc-version">v1.0 DRAFT</span>
+          <span style="font-size:12px;color:#9ca3af;">28 Feb 2026</span>
+        </div>
+      </div>
+
+      <div class="doc-title">Tecate Light Mexico 2026</div>
+      <div class="doc-subtitle">'De Aqui Pa' Donde?' Strategic Framework — Comms Plan · Prepared by WPP Open</div>
+
+      <div class="doc-meta-row">
+        <div class="doc-meta-item">
+          <div class="doc-meta-label">Campaign</div>
+          <div class="doc-meta-value">Tecate Light</div>
+        </div>
+        <div class="doc-meta-item">
+          <div class="doc-meta-label">Period</div>
+          <div class="doc-meta-value">2026 · Full Year</div>
+        </div>
+        <div class="doc-meta-item">
+          <div class="doc-meta-label">Market</div>
+          <div class="doc-meta-value">Mexico · AMER</div>
+        </div>
+        <div class="doc-meta-item">
+          <div class="doc-meta-label">Prepared By</div>
+          <div class="doc-meta-value">WPP Open · Strategy</div>
+        </div>
+      </div>
+
+      <!-- SECTION 1 -->
+      <div class="doc-section" style="position:relative;">
+        <div class="doc-section-number">01 — Executive Overview</div>
+        <div class="doc-section-title">Campaign Vision</div>
+        <div class="doc-body">Tecate Light enters 2026 at a defining moment — the opportunity to claim new positioning territory with a bold, movement-driven platform. 'De Aqui Pa' Donde?' ('From here, where to?') encapsulates a restless, forward-moving spirit that speaks directly to the modern Mexican consumer who refuses to stand still. This Comms Plan outlines the strategic framework to bring this new territory to life across ATL, BTL, and always-on channels.</div>
+        <div class="doc-highlight">"De Aqui Pa' Donde?" — More than a tagline. A rallying cry for those who are always moving forward. Active, ambitious, and refreshingly light.</div>
+        <div class="annotation" style="top: 60px;">
+          <div class="annotation-author">Sarah D. · Comment</div>
+          Territory feels right — strong cultural resonance. Confirm tone with MX regional team.
+        </div>
+      </div>
+
+      <!-- SECTION 2 -->
+      <div class="doc-section">
+        <div class="doc-section-number">02 — Consumer Intelligence</div>
+        <div class="doc-section-title">Target Audience Insights</div>
+        <div class="doc-body">Data synthesis from Heineken's AMER consumer panel and WPP's proprietary Mexico market research identifies the core Tecate Light growth segment:</div>
+        <ul class="doc-bullets">
+          <li><strong>Primary Segment:</strong> Active urban males, 21–35, Mexico City / Guadalajara / Monterrey — pace-setters in their social circles</li>
+          <li><strong>Occasion Over-index:</strong> Post-activity refreshment (sport, work, night out) — beer as the reward for momentum</li>
+          <li><strong>Light Beer Affinity:</strong> 68% of primary segment actively seeking lighter options without sacrificing taste or social credibility</li>
+          <li><strong>Digital Behaviour:</strong> 84% daily social media — TikTok, Instagram Reels, YouTube primary platforms; sports content over-index</li>
+          <li><strong>Cultural Insight:</strong> Strong pride in Mexican identity; brands that reflect authentic ambition resonate deeply</li>
+        </ul>
+      </div>
+
+      <!-- SECTION 3 -->
+      <div class="doc-section">
+        <div class="doc-section-number">03 — Communications Framework</div>
+        <div class="doc-section-title">TTL Channel Strategy</div>
+        <div class="doc-body">The Comms Plan is structured across five channel pillars, delivering the 'De Aqui Pa' Donde?' platform consistently from broadcast to in-hand:</div>
+
+        <table class="doc-table">
+          <thead>
+            <tr><th>Channel</th><th>Role</th><th>Message</th><th>Priority</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>TV / Broadcast ATL</strong></td><td>Brand awareness &amp; reach</td><td>"De Aqui Pa' Donde?" hero film</td><td>High</td></tr>
+            <tr><td><strong>Digital / Social</strong></td><td>Engagement &amp; community</td><td>Pace-setter content series</td><td>High</td></tr>
+            <tr><td><strong>OOH / DOOH</strong></td><td>Presence &amp; frequency</td><td>Motion-forward visual identity</td><td>Medium</td></tr>
+            <tr><td><strong>In-store / On-premise</strong></td><td>Conversion &amp; trial</td><td>Tecate Light — Made for the pace</td><td>High</td></tr>
+            <tr><td><strong>Experiential</strong></td><td>Brand experience</td><td>Live activations at key occasions</td><td>Medium</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SECTION 4 -->
+      <div class="doc-section">
+        <div class="doc-section-number">04 — Annual Calendar</div>
+        <div class="doc-section-title">Phased Activation Plan 2026</div>
+        <div class="doc-body">The Comms Plan is structured in three phases aligned to key cultural and seasonal moments across the Mexican market calendar:</div>
+        <div class="doc-highlight">Q1: Launch — Hero campaign films + OOH launch · Q2: Momentum — Always-on social + in-store · Q3–Q4: Amplify — Experiential activations + sports sponsorship integration</div>
+      </div>
+
+      <div style="margin-top:48px;padding-top:24px;border-top:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:12px;color:#9ca3af;">Tecate Light Mexico 2026 · 'De Aqui Pa' Donde?' · Comms Plan v1.0 · WPP Open · Confidential</div>
+        <div style="font-size:12px;color:#9ca3af;">Page 1 of 14</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEW PANEL -->
+  <div class="review-panel">
+    <div class="rp-section" style="background:#f0fdf4;">
+      <div class="rp-title">Review Actions</div>
+      <button class="action-btn btn-approve" onclick="alert('Strategy Approved! Feedback sent to WPP Open.')">✅ Approve Strategy</button>
+      <button class="action-btn btn-changes">✏️ Request Changes</button>
+      <button class="action-btn btn-feedback">📤 Send Feedback to WPP Open</button>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-title">Document Info</div>
+      <div class="doc-info-item"><span class="dii-label">Source</span><span class="dii-value">WPP Open</span></div>
+      <div class="doc-info-item"><span class="dii-label">Version</span><span class="dii-value">v1.0 Draft</span></div>
+      <div class="doc-info-item"><span class="dii-label">Pages</span><span class="dii-value">14</span></div>
+      <div class="doc-info-item"><span class="dii-label">Created</span><span class="dii-value">28 Feb 2026</span></div>
+      <div class="doc-info-item"><span class="dii-label">Agent</span><span class="dii-value">WPP Strategy Agent</span></div>
+      <div class="doc-info-item"><span class="dii-label">Status</span><span class="dii-value" style="color:#f59e0b;">Under Review</span></div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-title">Section Progress</div>
+      <div class="rp-sub">Track your review</div>
+      <div class="section-progress">
+        <div class="sp-item"><div class="sp-dot" style="background:#10b981;"></div><div class="sp-name">Campaign Vision</div><div class="sp-status" style="color:#10b981;">Read ✓</div></div>
+        <div class="sp-item"><div class="sp-dot" style="background:#10b981;"></div><div class="sp-name">Audience Insights</div><div class="sp-status" style="color:#10b981;">Read ✓</div></div>
+        <div class="sp-item"><div class="sp-dot" style="background:#f59e0b;"></div><div class="sp-name">Messaging Framework</div><div class="sp-status" style="color:#f59e0b;">Reviewing</div></div>
+        <div class="sp-item"><div class="sp-dot" style="background:#d1d5db;"></div><div class="sp-name">Market Priorities</div><div class="sp-status">Unread</div></div>
+        <div class="sp-item"><div class="sp-dot" style="background:#d1d5db;"></div><div class="sp-name">Channel Strategy</div><div class="sp-status">Unread</div></div>
+        <div class="sp-item"><div class="sp-dot" style="background:#d1d5db;"></div><div class="sp-name">Timeline</div><div class="sp-status">Unread</div></div>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-title">Add Comment</div>
+      <textarea class="comment-input" placeholder="Add your review comment or feedback..."></textarea>
+      <button class="send-comment-btn">Send Comment →</button>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-title">Existing Comments (2)</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:#fef9c3;border-radius:8px;padding:10px;font-size:12px;">
+          <div style="font-weight:700;color:#92400e;margin-bottom:4px;">Sarah D. · Pg 1</div>
+          <div style="color:#713f12;">Positioning aligns well — review with Mark for sign-off on tone</div>
+          <div style="color:#9ca3af;font-size:10px;margin-top:4px;">Just now</div>
+        </div>
+        <div style="background:#e0f2fe;border-radius:8px;padding:10px;font-size:12px;">
+          <div style="font-weight:700;color:#0369a1;margin-bottom:4px;">Mark K. · Pg 2</div>
+          <div style="color:#0c4a6e;">EUR split looks right. Need to validate APAC budget with regional leads.</div>
+          <div style="color:#9ca3af;font-size:10px;margin-top:4px;">Yesterday</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="screen-label"><span class="scenario-tag">Scenario 1</span> · Screen 05 of 09</div>
+<div class="screen-nav">
+  <a href="screen4.html" class="snav-btn secondary">← WPP Update</a>
+  <a href="index.html" class="snav-btn secondary">⊞</a>
+  <a href="screen6.html" class="snav-btn">Scenario 2: Agent Hub →</a>
+</div>
+</body>
+</html>

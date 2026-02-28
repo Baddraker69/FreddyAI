@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreddyConnect — Data Flow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #0d1b2a; color: #fff; width: 1440px; min-height: 900px; overflow: hidden; }
+
+  .top-nav {
+    height: 64px; background: rgba(255,255,255,0.04); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; padding: 0 32px; gap: 16px;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  }
+  .nav-brand { color: #fff; font-size: 18px; font-weight: 700; }
+  .scenario-pill {
+    background: rgba(76,175,80,0.15); color: #4caf50; padding: 5px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid rgba(76,175,80,0.3);
+    margin-left: auto;
+  }
+
+  /* MAIN CANVAS */
+  .canvas { padding-top: 64px; height: 100vh; display: flex; align-items: stretch; }
+
+  /* PANELS */
+  .panel {
+    width: 320px; flex-shrink: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 40px 32px;
+    position: relative;
+  }
+  .panel-left { background: linear-gradient(160deg, #0f2a1a 0%, #0d1b0e 100%); border-right: 1px solid rgba(255,255,255,0.06); }
+  .panel-right { background: linear-gradient(160deg, #0d1b2a 0%, #071020 100%); border-left: 1px solid rgba(255,255,255,0.06); }
+
+  .panel-logo { margin-bottom: 24px; text-align: center; }
+  .panel-logo-icon { width: 72px; height: 72px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 28px; }
+  .panel-logo-icon.green { background: rgba(26,92,56,0.4); border: 2px solid rgba(0,133,66,0.4); box-shadow: 0 0 32px rgba(0,133,66,0.2); }
+  .panel-logo-icon.blue { background: rgba(29,78,216,0.3); border: 2px solid rgba(59,130,246,0.4); box-shadow: 0 0 32px rgba(59,130,246,0.2); }
+  .panel-name { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .panel-sub { font-size: 13px; color: rgba(255,255,255,0.5); }
+
+  .status-confirmed {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);
+    color: #10b981; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700;
+    margin-top: 20px;
+  }
+  .status-confirmed-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; }
+
+  /* TASKS LIST */
+  .tasks-list { width: 100%; margin-top: 24px; }
+  .task-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; margin-bottom: 10px; font-size: 13px;
+    transition: all 0.3s ease;
+  }
+  .task-item.done { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.25); }
+  .task-item.active { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3); }
+  .task-icon-sm { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .task-icon-done { background: rgba(16,185,129,0.2); }
+  .task-icon-active { background: rgba(245,158,11,0.2); }
+  .task-icon-pending { background: rgba(255,255,255,0.06); }
+  .task-label { flex: 1; font-weight: 500; }
+  .task-status { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
+  .ts-done { background: rgba(16,185,129,0.15); color: #10b981; }
+  .ts-active { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .ts-pending { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); }
+
+  /* CENTER FLOW */
+  .center-flow {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .flow-label {
+    position: absolute; top: 90px; font-size: 11px; font-weight: 700;
+    color: rgba(255,255,255,0.3); letter-spacing: 3px; text-transform: uppercase; text-align: center;
+  }
+  .flow-title {
+    font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 8px;
+    background: linear-gradient(90deg, #4caf50, #a5f3fc, #4caf50);
+    background-size: 200% auto;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shimmer 3s linear infinite;
+  }
+  @keyframes shimmer { to { background-position: 200% center; } }
+  .flow-sub { font-size: 14px; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 48px; }
+
+  /* PARTICLE CANVAS */
+  .particle-field { position: absolute; inset: 0; overflow: hidden; }
+  .particle {
+    position: absolute; width: 6px; height: 6px; border-radius: 50%;
+    background: #4caf50; opacity: 0;
+    animation: flowRight var(--dur) var(--delay) ease-in-out infinite;
+  }
+  @keyframes flowRight {
+    0% { left: 10%; opacity: 0; transform: translateY(0) scale(0.5); }
+    20% { opacity: 0.9; }
+    80% { opacity: 0.9; }
+    100% { left: 90%; opacity: 0; transform: translateY(var(--drift)) scale(1.2); }
+  }
+  .data-packet {
+    position: absolute; display: flex; align-items: center; gap: 6px;
+    background: rgba(0,133,66,0.15); border: 1px solid rgba(0,133,66,0.4);
+    padding: 6px 12px; border-radius: 20px; font-size: 11px; color: #4caf50; font-weight: 600;
+    opacity: 0;
+    animation: packetFlow var(--dur2) var(--delay2) ease-in-out infinite;
+  }
+  @keyframes packetFlow {
+    0% { left: 12%; opacity: 0; top: var(--y); }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { left: 85%; opacity: 0; top: var(--y); }
+  }
+  .packet-dot { width: 6px; height: 6px; border-radius: 50%; background: #4caf50; }
+
+  /* PIPE VISUAL */
+  .pipe-visual {
+    width: 100%; height: 60px; position: relative; margin: 0 auto;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pipe-line {
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, rgba(0,133,66,0.8), rgba(76,175,80,1), rgba(59,130,246,0.8));
+    border-radius: 2px;
+    position: relative;
+    box-shadow: 0 0 12px rgba(76,175,80,0.4);
+  }
+  .pipe-arrow {
+    position: absolute; right: -10px; top: 50%; transform: translateY(-50%);
+    color: #4caf50; font-size: 20px;
+  }
+  .pipe-glow {
+    position: absolute; inset: -6px -20px;
+    background: linear-gradient(90deg, transparent, rgba(76,175,80,0.1), transparent);
+    animation: glowPulse 2s ease infinite;
+  }
+  @keyframes glowPulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+  /* METRIC PILLS */
+  .metric-pills { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+  .metric-pill {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    padding: 8px 16px; border-radius: 20px; font-size: 12px; color: rgba(255,255,255,0.7);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .metric-pill-dot { width: 6px; height: 6px; border-radius: 50%; background: #4caf50; box-shadow: 0 0 6px #4caf50; }
+
+  /* CONTINUE BTN */
+  .continue-btn {
+    position: absolute; bottom: 40px; right: 40px;
+    background: linear-gradient(135deg, #008542, #1a5c38); color: #fff;
+    padding: 14px 28px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700;
+    cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 6px 24px rgba(0,133,66,0.4);
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse { 0%,100%{box-shadow:0 6px 24px rgba(0,133,66,0.4)} 50%{box-shadow:0 6px 32px rgba(0,133,66,0.7)} }
+  .continue-btn:hover { transform: translateY(-2px); }
+
+  .screen-nav { position: fixed; bottom: 28px; right: 28px; display: flex; gap: 10px; z-index: 200; }
+  .snav-btn { background: rgba(255,255,255,0.1); backdrop-filter:blur(10px); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none; transition: all 0.15s; }
+  .snav-btn:hover { background: rgba(0,133,66,0.3); border-color: #4caf50; }
+  .snav-btn.primary { background: #1a5c38; border-color: #008542; }
+  .screen-label { position: fixed; bottom: 28px; left: 28px; background: rgba(0,133,66,0.2); backdrop-filter:blur(10px); border:1px solid rgba(0,133,66,0.3); color: #4caf50; padding: 8px 16px; border-radius: 8px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; z-index: 200; }
+</style>
+</head>
+<body>
+
+<!-- PARTICLES -->
+<div class="particle-field" id="particleField"></div>
+
+<nav class="top-nav">
+  <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+    <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+  </svg>
+  <span style="color:rgba(255,255,255,0.4);font-size:20px;font-weight:200;margin:0 4px;">|</span>
+  <span class="nav-brand">FreddyConnect</span>
+  <span style="color:rgba(255,255,255,0.3);font-size:14px;margin-left:8px;">→ Data Integration Layer</span>
+  <div class="scenario-pill">Scenario 1 · Screen 03 of 09</div>
+</nav>
+
+<div class="canvas">
+
+  <!-- LEFT: FreddyConnect -->
+  <div class="panel panel-left">
+    <div class="panel-logo">
+      <div class="panel-logo-icon green">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+        </svg>
+      </div>
+      <div class="panel-name">FreddyConnect</div>
+      <div class="panel-sub">Heineken AI Platform</div>
+    </div>
+
+    <div class="status-confirmed">
+      <div class="status-confirmed-dot"></div>
+      Brief Approved ✓
+    </div>
+
+    <div style="margin-top:24px;width:100%;">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Data Package Sent</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="background:rgba(0,133,66,0.1);border:1px solid rgba(0,133,66,0.3);border-radius:8px;padding:10px 14px;">
+          <div style="font-size:12px;font-weight:700;color:#4caf50;margin-bottom:2px;">📋 Campaign Brief</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);">Heineken Silver Q2 2026 · Full brief document</div>
+        </div>
+        <div style="background:rgba(0,133,66,0.1);border:1px solid rgba(0,133,66,0.3);border-radius:8px;padding:10px 14px;">
+          <div style="font-size:12px;font-weight:700;color:#4caf50;margin-bottom:2px;">🎯 Market Brief</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);">EUR/AMER/APAC/Africa · Market priorities</div>
+        </div>
+        <div style="background:rgba(0,133,66,0.1);border:1px solid rgba(0,133,66,0.3);border-radius:8px;padding:10px 14px;">
+          <div style="font-size:12px;font-weight:700;color:#4caf50;margin-bottom:2px;">💰 Budget Parameters</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);">€18M – €22M approved envelope</div>
+        </div>
+        <div style="background:rgba(0,133,66,0.1);border:1px solid rgba(0,133,66,0.3);border-radius:8px;padding:10px 14px;">
+          <div style="font-size:12px;font-weight:700;color:#4caf50;margin-bottom:2px;">📊 Audience Data</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);">Consumer segments · Targeting criteria</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: FLOW -->
+  <div class="center-flow">
+    <div class="flow-label">SECURE DATA INTEGRATION</div>
+
+    <div style="text-align:center;z-index:10;position:relative;">
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;">Transmitting</div>
+      <div class="flow-title">FreddyConnect → WPP Open</div>
+      <div class="flow-sub">Secure API bridge · End-to-end encrypted · Real-time sync</div>
+
+      <div style="width:440px;height:80px;position:relative;margin:0 auto 32px;">
+        <div style="position:absolute;top:50%;left:0;right:0;height:3px;background:linear-gradient(90deg,rgba(0,133,66,0.8),#4caf50,rgba(59,130,246,0.8));border-radius:2px;box-shadow:0 0 20px rgba(76,175,80,0.5);transform:translateY(-50%);"></div>
+        <div style="position:absolute;top:50%;right:-8px;transform:translateY(-50%);color:#63b3ed;font-size:22px;">▶</div>
+        <!-- Animated packets on the line -->
+        <div id="linePackets" style="position:absolute;top:50%;left:0;right:0;height:20px;transform:translateY(-50%);overflow:visible;"></div>
+      </div>
+
+      <div class="metric-pills">
+        <div class="metric-pill"><div class="metric-pill-dot"></div> 4 data packages</div>
+        <div class="metric-pill"><div class="metric-pill-dot" style="background:#63b3ed;box-shadow:0 0 6px #63b3ed;"></div> TLS 1.3 encrypted</div>
+        <div class="metric-pill"><div class="metric-pill-dot" style="background:#f59e0b;box-shadow:0 0 6px #f59e0b;"></div> Latency: 42ms</div>
+      </div>
+
+      <div style="margin-top:32px;display:flex;align-items:center;gap:12px;justify-content:center;">
+        <div style="width:40px;height:40px;border-radius:50%;border:3px solid #4caf50;border-top-color:transparent;animation:spin 1s linear infinite;"></div>
+        <div style="text-align:left;">
+          <div style="font-size:14px;font-weight:700;color:#4caf50;">Workflow Initiated</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);">WPP Open processing brief...</div>
+        </div>
+      </div>
+    </div>
+    @keyframes spin { to{transform:rotate(360deg)} }
+  </div>
+
+  <!-- RIGHT: WPP Open -->
+  <div class="panel panel-right">
+    <div class="panel-logo">
+      <div class="panel-logo-icon blue">
+        <span style="font-size:22px;font-weight:900;color:#63b3ed;font-family:serif;">W</span>
+      </div>
+      <div class="panel-name">WPP Open</div>
+      <div class="panel-sub">Agency Partner Platform</div>
+    </div>
+
+    <div style="margin-top:8px;width:100%;">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Triggered Tasks</div>
+      <div class="tasks-list">
+
+        <div class="task-item done" id="task1" style="animation-delay:0.5s;">
+          <div class="task-icon-sm task-icon-done">✓</div>
+          <div class="task-label">Brief Received</div>
+          <div class="task-status ts-done">Done</div>
+        </div>
+
+        <div class="task-item active" id="task2">
+          <div class="task-icon-sm task-icon-active">
+            <div style="width:12px;height:12px;border-radius:50%;border:2px solid #f59e0b;border-top-color:transparent;animation:spin 1s linear infinite;"></div>
+          </div>
+          <div class="task-label">Review Brief</div>
+          <div class="task-status ts-active">In Progress</div>
+        </div>
+
+        <div class="task-item" id="task3">
+          <div class="task-icon-sm task-icon-pending" style="opacity:0.4;">○</div>
+          <div class="task-label" style="color:rgba(255,255,255,0.4);">Allocate Creative Resources</div>
+          <div class="task-status ts-pending">Queued</div>
+        </div>
+
+        <div class="task-item" id="task4">
+          <div class="task-icon-sm task-icon-pending" style="opacity:0.4;">○</div>
+          <div class="task-label" style="color:rgba(255,255,255,0.4);">Initiate Strategy Agent</div>
+          <div class="task-status ts-pending">Queued</div>
+        </div>
+
+        <div class="task-item" id="task5">
+          <div class="task-icon-sm task-icon-pending" style="opacity:0.4;">○</div>
+          <div class="task-label" style="color:rgba(255,255,255,0.4);">Generate Strategy Outline</div>
+          <div class="task-status ts-pending">Queued</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:100%;margin-top:16px;background:rgba(29,78,216,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:14px 16px;">
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:6px;">Expected Response</div>
+      <div style="font-size:13px;font-weight:600;color:#63b3ed;">Initial Strategy Outline</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;">~24–48 hours</div>
+    </div>
+  </div>
+</div>
+
+<div class="screen-label">Scenario 1 · Screen 03 of 09</div>
+<div class="screen-nav">
+  <a href="screen2.html" class="snav-btn">← Brief</a>
+  <a href="index.html" class="snav-btn">⊞ All</a>
+  <a href="screen4.html" class="snav-btn primary">Continue → WPP Update</a>
+</div>
+
+<style>
+@keyframes spin { to{transform:rotate(360deg)} }
+.packet-anim {
+  position:absolute; top:50%; transform:translateY(-50%);
+  background:rgba(76,175,80,0.3); border:1px solid #4caf50;
+  border-radius:20px; padding:3px 10px; font-size:10px; color:#4caf50; font-weight:700;
+  white-space:nowrap;
+  animation: movePacket 3s linear infinite;
+}
+@keyframes movePacket { 0%{left:-20%;opacity:0} 10%{opacity:1} 85%{opacity:1} 100%{left:100%;opacity:0} }
+</style>
+<script>
+// Create animated line packets
+const packets = ['📋 Brief', '🎯 Markets', '💰 Budget', '📊 Audience'];
+const container = document.getElementById('linePackets');
+packets.forEach((text, i) => {
+  const el = document.createElement('div');
+  el.className = 'packet-anim';
+  el.style.animationDelay = (i * 0.75) + 's';
+  el.textContent = text;
+  container.appendChild(el);
+});
+
+// Create background particles
+const field = document.getElementById('particleField');
+for(let i = 0; i < 40; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.setProperty('--dur', (2 + Math.random()*4) + 's');
+  p.style.setProperty('--delay', (Math.random()*4) + 's');
+  p.style.setProperty('--drift', (Math.random()*60-30) + 'px');
+  p.style.top = (10 + Math.random()*80) + '%';
+  p.style.width = p.style.height = (3 + Math.random()*5) + 'px';
+  p.style.opacity = 0.3 + Math.random()*0.5;
+  p.style.background = Math.random() > 0.5 ? '#4caf50' : '#63b3ed';
+  field.appendChild(p);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreddyConnect — WPP Agent Discovery</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f5f6f8; color: #1a1a2e; width: 1440px; min-height: 900px; }
+
+  .top-nav { height: 64px; background: #1a5c38; display: flex; align-items: center; padding: 0 24px; gap: 16px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+  .nav-brand { color: #fff; font-size: 18px; font-weight: 700; }
+  .nav-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .nav-avatar { width: 36px; height: 36px; background: #008542; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
+
+  .layout { display: flex; padding-top: 64px; }
+  .sidebar { width: 220px; background: #fff; border-right: 1px solid #e8eaed; padding: 24px 0; position: fixed; top: 64px; bottom: 0; left: 0; z-index: 90; }
+  .sidebar-section { padding: 0 12px; margin-bottom: 8px; }
+  .sidebar-label { font-size: 10px; font-weight: 700; color: #9ca3af; letter-spacing: 2px; text-transform: uppercase; padding: 0 12px 8px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; color: #6b7280; text-decoration: none; }
+  .sidebar-item:hover { background: #f0fdf4; color: #1a5c38; }
+  .sidebar-item.active { background: #f0fdf4; color: #1a5c38; font-weight: 600; }
+  .si-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .main { margin-left: 220px; padding: 32px 36px; flex: 1; }
+
+  /* HEADER */
+  .page-header { margin-bottom: 24px; }
+  .ph-title { font-size: 26px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+  .ph-sub { font-size: 14px; color: #6b7280; }
+
+  /* SEARCH & FILTERS */
+  .search-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .search-bar {
+    display: flex; align-items: center; gap: 10px; background: #fff;
+    border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 16px; flex: 1;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .search-icon { color: #9ca3af; font-size: 16px; }
+  .search-input { border: none; outline: none; font-size: 14px; color: #374151; font-family: inherit; flex: 1; background: transparent; }
+  .search-input::placeholder { color: #9ca3af; }
+  .sort-btn { background: #fff; border: 1px solid #e5e7eb; padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; color: #374151; cursor: pointer; }
+
+  .filter-tabs { display: flex; gap: 6px; margin-bottom: 24px; }
+  .filter-tab { padding: 7px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .ft-all { background: #1a5c38; color: #fff; }
+  .ft-other { background: #f3f4f6; color: #6b7280; }
+  .ft-other:hover { background: #e5e7eb; color: #1a1a2e; }
+
+  /* LAYOUT: LIST + DETAIL -->
+  .agent-layout { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+
+  /* LEFT LIST */
+  .agent-list-card { background: #fff; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; }
+  .alc-header { padding: 16px 20px; border-bottom: 1px solid #f3f4f6; background: #f9fafb; }
+  .alc-header-title { font-size: 13px; font-weight: 700; color: #1a1a2e; }
+  .alc-header-count { font-size: 12px; color: #9ca3af; }
+  .agent-list-item {
+    display: flex; align-items: flex-start; gap: 12px; padding: 16px 20px;
+    border-bottom: 1px solid #f9fafb; cursor: pointer; transition: all 0.15s;
+  }
+  .agent-list-item:hover { background: #f9fafb; }
+  .agent-list-item.selected { background: #eff6ff; border-left: 3px solid #3b82f6; }
+  .ali-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .ali-blue { background: #dbeafe; }
+  .ali-purple { background: #ede9fe; }
+  .ali-green { background: #dcfce7; }
+  .ali-name { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 3px; }
+  .ali-desc { font-size: 12px; color: #6b7280; line-height: 1.4; }
+  .ali-badge { margin-left: auto; flex-shrink: 0; }
+  .ali-badge span { background: #dbeafe; color: #1d4ed8; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+
+  /* RIGHT DETAIL */
+  .agent-detail { }
+  .detail-card {
+    background: #fff; border-radius: 14px; border: 2px solid #93c5fd;
+    overflow: hidden; box-shadow: 0 8px 32px rgba(59,130,246,0.1);
+  }
+  .detail-hero {
+    background: linear-gradient(160deg, #1e3a5f 0%, #1a2f5c 100%);
+    padding: 32px; color: #fff; position: relative; overflow: hidden;
+  }
+  .detail-hero::after {
+    content: 'W'; position: absolute; right: -20px; top: -20px;
+    font-size: 180px; font-weight: 900; color: rgba(255,255,255,0.03); font-family: serif;
+  }
+  .detail-hero-icon { width: 72px; height: 72px; background: rgba(99,179,237,0.15); border: 2px solid rgba(99,179,237,0.3); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 16px; }
+  .detail-name { font-size: 24px; font-weight: 900; margin-bottom: 6px; }
+  .detail-desc { font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.6; margin-bottom: 20px; max-width: 520px; }
+  .detail-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .detail-tag { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.9); padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .powered-by { position: absolute; top: 24px; right: 24px; background: rgba(99,179,237,0.15); border: 1px solid rgba(99,179,237,0.3); color: #63b3ed; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+
+  /* DETAIL METRICS */
+  .detail-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-bottom: 1px solid #f3f4f6; }
+  .dm-item { padding: 20px; text-align: center; border-right: 1px solid #f3f4f6; }
+  .dm-item:last-child { border-right: none; }
+  .dm-value { font-size: 24px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+  .dm-label { font-size: 11px; color: #9ca3af; font-weight: 600; }
+
+  /* CAPABILITIES */
+  .detail-body { padding: 28px; }
+  .detail-section { margin-bottom: 28px; }
+  .ds-title { font-size: 13px; font-weight: 700; color: #1a1a2e; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #f3f4f6; }
+  .capability-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cap-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: #f9fafb; border-radius: 8px; }
+  .cap-item-icon { font-size: 18px; flex-shrink: 0; }
+  .cap-item-name { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 2px; }
+  .cap-item-desc { font-size: 12px; color: #6b7280; }
+  .use-case-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; font-size: 13px; color: #374151; border-bottom: 1px solid #f9fafb; }
+  .uc-bullet { color: #3b82f6; font-weight: 700; flex-shrink: 0; }
+
+  /* CTA SECTION */
+  .detail-cta { padding: 24px 28px; background: #f8faff; border-top: 1px solid #e5e7eb; display: flex; gap: 12px; align-items: center; }
+  .launch-btn {
+    flex: 1; background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: #fff;
+    padding: 14px 24px; border-radius: 10px; border: none; font-size: 15px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 4px 20px rgba(59,130,246,0.3); transition: all 0.2s;
+    text-decoration: none;
+  }
+  .launch-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(59,130,246,0.4); }
+  .add-session-btn {
+    background: #fff; color: #1d4ed8; border: 2px solid #3b82f6; padding: 14px 24px;
+    border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+    text-decoration: none; display: flex; align-items: center; gap: 6px;
+  }
+  .add-session-btn:hover { background: #eff6ff; }
+
+  .screen-nav { position: fixed; bottom: 28px; right: 28px; display: flex; gap: 10px; z-index: 200; }
+  .snav-btn { background: #1a5c38; color: #fff; border: none; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; box-shadow: 0 4px 16px rgba(26,92,56,0.3); transition: all 0.15s; }
+  .snav-btn:hover { background: #008542; transform: translateY(-1px); }
+  .snav-btn.secondary { background: rgba(26,92,56,0.1); color: #1a5c38; box-shadow: none; border: 1px solid #008542; }
+  .screen-label { position: fixed; bottom: 28px; left: 28px; background: rgba(26,92,56,0.9); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; z-index: 200; }
+  .scenario-tag { color: #4caf50; }
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+    <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+  </svg>
+  <span style="color:rgba(255,255,255,0.4);font-size:20px;margin:0 3px;">|</span>
+  <span class="nav-brand">FreddyConnect</span>
+  <span style="color:rgba(255,255,255,0.4);margin-left:16px;font-size:13px;">→ Agency Agents Library</span>
+  <div class="nav-right">
+    <div class="nav-avatar">SD</div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <a class="sidebar-item" href="screen1.html"><span class="si-icon">⬛</span> Dashboard</a>
+      <a class="sidebar-item" href="#"><span class="si-icon">📁</span> Campaigns</a>
+      <a class="sidebar-item active" href="screen6.html"><span class="si-icon">🤖</span> Agents</a>
+      <a class="sidebar-item" href="screen2.html"><span class="si-icon">⚙️</span> Workfront</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Agents</div>
+      <a class="sidebar-item" href="screen6.html"><span class="si-icon">🏠</span> My Agents</a>
+      <a class="sidebar-item active" href="#"><span class="si-icon">🔍</span> Library</a>
+      <a class="sidebar-item" href="#"><span class="si-icon">⚙</span> Settings</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="ph-title">Agency Agents Library</div>
+      <div class="ph-sub">Discover and connect with agency partner agents to extend your marketing capabilities</div>
+    </div>
+
+    <div class="search-row">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" value="WPP Briefing Agent" placeholder="Search agency agents...">
+      </div>
+      <button class="sort-btn">Sort: Relevance ▼</button>
+      <button class="sort-btn">Filter ⚙</button>
+    </div>
+
+    <div class="filter-tabs">
+      <button class="filter-tab ft-all">All Agents</button>
+      <button class="filter-tab ft-other">WPP</button>
+      <button class="filter-tab ft-other">Ogilvy</button>
+      <button class="filter-tab ft-other">GroupM</button>
+      <button class="filter-tab ft-other">MediaCom</button>
+      <button class="filter-tab ft-other">EssenceMediacom</button>
+    </div>
+
+    <div class="agent-layout">
+      <!-- AGENT LIST -->
+      <div>
+        <div class="agent-list-card">
+          <div class="alc-header">
+            <div class="alc-header-title">Agency Partner Agents</div>
+            <div class="alc-header-count">12 agents available</div>
+          </div>
+
+          <div class="agent-list-item selected">
+            <div class="ali-icon ali-blue">🔍</div>
+            <div style="flex:1;">
+              <div class="ali-name">WPP Briefing Agent</div>
+              <div class="ali-desc">Transform briefs into strategic frameworks</div>
+            </div>
+            <div class="ali-badge"><span>WPP</span></div>
+          </div>
+
+          <div class="agent-list-item">
+            <div class="ali-icon ali-blue">💡</div>
+            <div style="flex:1;">
+              <div class="ali-name">WPP Strategy Agent</div>
+              <div class="ali-desc">Creative strategy recommendations</div>
+            </div>
+            <div class="ali-badge"><span>WPP</span></div>
+          </div>
+
+          <div class="agent-list-item">
+            <div class="ali-icon ali-blue">🎬</div>
+            <div style="flex:1;">
+              <div class="ali-name">WPP Production Agent</div>
+              <div class="ali-desc">Production workflow management</div>
+            </div>
+            <div class="ali-badge"><span>WPP</span></div>
+          </div>
+
+          <div class="agent-list-item">
+            <div class="ali-icon ali-purple">📡</div>
+            <div style="flex:1;">
+              <div class="ali-name">GroupM Media Planning Agent</div>
+              <div class="ali-desc">Omnichannel media planning & buying</div>
+            </div>
+            <div class="ali-badge"><span style="background:#ede9fe;color:#6d28d9;">GroupM</span></div>
+          </div>
+
+          <div class="agent-list-item">
+            <div class="ali-icon ali-purple">📊</div>
+            <div style="flex:1;">
+              <div class="ali-name">EssenceMediacom Analytics</div>
+              <div class="ali-desc">Performance analytics & attribution</div>
+            </div>
+            <div class="ali-badge"><span style="background:#ede9fe;color:#6d28d9;">GroupM</span></div>
+          </div>
+
+          <div class="agent-list-item">
+            <div class="ali-icon ali-green">🎯</div>
+            <div style="flex:1;">
+              <div class="ali-name">Ogilvy Creative Agent</div>
+              <div class="ali-desc">Creative concept generation & ideation</div>
+            </div>
+            <div class="ali-badge"><span style="background:#fef3c7;color:#92400e;">Ogilvy</span></div>
+          </div>
+
+          <div style="padding:14px 20px;text-align:center;border-top:1px solid #f3f4f6;">
+            <span style="font-size:12px;color:#3b82f6;font-weight:600;cursor:pointer;">Load 6 more agents →</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AGENT DETAIL -->
+      <div class="agent-detail">
+        <div class="detail-card">
+          <div class="detail-hero">
+            <div class="powered-by">Powered by WPP Open</div>
+            <div class="detail-hero-icon">🔍</div>
+            <div class="detail-name">WPP Briefing Agent</div>
+            <div class="detail-desc">Transforms campaign briefs into comprehensive strategic frameworks by analysing market context, audience data, competitive landscape, and brand positioning to build actionable, insight-driven briefs at scale.</div>
+            <div class="detail-tags">
+              <span class="detail-tag">Brief Analysis</span>
+              <span class="detail-tag">Strategic Framework</span>
+              <span class="detail-tag">Market Context</span>
+              <span class="detail-tag">Audience Profiling</span>
+              <span class="detail-tag">Competitive Intel</span>
+            </div>
+          </div>
+
+          <div class="detail-metrics">
+            <div class="dm-item">
+              <div class="dm-value">847</div>
+              <div class="dm-label">Briefs Processed</div>
+            </div>
+            <div class="dm-item">
+              <div class="dm-value" style="color:#f59e0b;">4.9 ★</div>
+              <div class="dm-label">User Rating</div>
+            </div>
+            <div class="dm-item">
+              <div class="dm-value" style="color:#10b981;">~4 min</div>
+              <div class="dm-label">Avg. Response</div>
+            </div>
+            <div class="dm-item">
+              <div class="dm-value">98%</div>
+              <div class="dm-label">Uptime</div>
+            </div>
+          </div>
+
+          <div class="detail-body">
+            <div class="detail-section">
+              <div class="ds-title">Core Capabilities</div>
+              <div class="capability-grid">
+                <div class="cap-item">
+                  <div class="cap-item-icon">📋</div>
+                  <div>
+                    <div class="cap-item-name">Brief Analysis</div>
+                    <div class="cap-item-desc">Deconstructs and validates incoming briefs against WPP's strategic quality framework</div>
+                  </div>
+                </div>
+                <div class="cap-item">
+                  <div class="cap-item-icon">🗺️</div>
+                  <div>
+                    <div class="cap-item-name">Strategic Framework</div>
+                    <div class="cap-item-desc">Builds a complete strategic framework aligned to brand, audience, and market context</div>
+                  </div>
+                </div>
+                <div class="cap-item">
+                  <div class="cap-item-icon">🌍</div>
+                  <div>
+                    <div class="cap-item-name">Market Context</div>
+                    <div class="cap-item-desc">Enriches briefs with real-time market data and competitive intelligence</div>
+                  </div>
+                </div>
+                <div class="cap-item">
+                  <div class="cap-item-icon">👥</div>
+                  <div>
+                    <div class="cap-item-name">Audience Profiling</div>
+                    <div class="cap-item-desc">Deep consumer segment analysis using WPP's proprietary data assets</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <div class="ds-title">Common Use Cases</div>
+              <div class="use-case-item"><span class="uc-bullet">→</span> Accelerate campaign briefing for global brand launches</div>
+              <div class="use-case-item"><span class="uc-bullet">→</span> Enrich Heineken briefs with WPP's strategic methodology</div>
+              <div class="use-case-item"><span class="uc-bullet">→</span> Real-time collaboration between brand and agency teams</div>
+              <div class="use-case-item"><span class="uc-bullet">→</span> Agent-to-agent data exchange for automated brief population</div>
+            </div>
+
+            <div class="detail-section">
+              <div class="ds-title">Integration Details</div>
+              <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                <div style="background:#f0fdf4;border-radius:8px;padding:12px 16px;flex:1;min-width:160px;">
+                  <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Auth</div>
+                  <div style="font-size:13px;font-weight:600;color:#1a1a2e;">OAuth 2.0 · API Key</div>
+                </div>
+                <div style="background:#f0fdf4;border-radius:8px;padding:12px 16px;flex:1;min-width:160px;">
+                  <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Protocol</div>
+                  <div style="font-size:13px;font-weight:600;color:#1a1a2e;">REST API · WebSocket</div>
+                </div>
+                <div style="background:#f0fdf4;border-radius:8px;padding:12px 16px;flex:1;min-width:160px;">
+                  <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Data</div>
+                  <div style="font-size:13px;font-weight:600;color:#1a1a2e;">TLS 1.3 Encrypted</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-cta">
+            <a href="screen9.html" class="launch-btn">🚀 Launch Agent — Add to Session</a>
+            <a href="screen7.html" class="add-session-btn">+ Add to Chat →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="screen-label"><span class="scenario-tag">Scenario 2</span> · Screen 08 of 09</div>
+<div class="screen-nav">
+  <a href="screen7.html" class="snav-btn secondary">← Agent Chat</a>
+  <a href="index.html" class="snav-btn secondary">⊞ All Screens</a>
+  <a href="screen9.html" class="snav-btn">Next: A2A Flow →</a>
+</div>
+</body>
+</html>

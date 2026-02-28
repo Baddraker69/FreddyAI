@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreddyConnect — Agent-to-Agent Flow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #0a1628; color: #fff; width: 1440px; min-height: 900px; overflow-x: hidden; }
+
+  .top-nav {
+    height: 60px; background: rgba(255,255,255,0.03); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex; align-items: center; padding: 0 32px; gap: 16px;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  }
+  .nav-brand { color: #fff; font-size: 17px; font-weight: 700; }
+  .scenario-pill { background: rgba(99,179,237,0.12); color: #63b3ed; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid rgba(99,179,237,0.25); margin-left: auto; }
+
+  /* MAIN CANVAS */
+  .canvas { padding-top: 60px; min-height: calc(100vh - 60px); }
+
+  /* TITLE AREA */
+  .title-area { text-align: center; padding: 32px 0 24px; position: relative; z-index: 10; }
+  .title-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px; }
+  .title-main { font-size: 30px; font-weight: 900; margin-bottom: 6px; background: linear-gradient(90deg, #4caf50, #63b3ed, #4caf50); background-size: 300% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shine 4s linear infinite; }
+  @keyframes shine { to { background-position: 300% center; } }
+  .title-sub { font-size: 14px; color: rgba(255,255,255,0.5); }
+
+  /* THREE COLUMN LAYOUT */
+  .three-col { display: grid; grid-template-columns: 380px 1fr 380px; gap: 0; min-height: 480px; padding: 0 32px; position: relative; z-index: 10; }
+
+  /* AGENT PANELS */
+  .agent-col {
+    border-radius: 16px; padding: 24px; position: relative;
+    overflow: hidden;
+  }
+  .col-heineken {
+    background: linear-gradient(160deg, #0f2a1a 0%, #071410 100%);
+    border: 1px solid rgba(0,133,66,0.3);
+    box-shadow: inset 0 0 60px rgba(0,133,66,0.05);
+  }
+  .col-wpp {
+    background: linear-gradient(160deg, #0d1b2a 0%, #060e1a 100%);
+    border: 1px solid rgba(59,130,246,0.3);
+    box-shadow: inset 0 0 60px rgba(59,130,246,0.05);
+  }
+
+  .col-logo-area { text-align: center; margin-bottom: 24px; }
+  .col-logo-icon {
+    width: 64px; height: 64px; border-radius: 18px; display: flex; align-items: center;
+    justify-content: center; font-size: 26px; margin: 0 auto 12px;
+  }
+  .li-green { background: rgba(0,133,66,0.2); border: 2px solid rgba(0,133,66,0.4); box-shadow: 0 0 24px rgba(0,133,66,0.15); }
+  .li-blue { background: rgba(59,130,246,0.15); border: 2px solid rgba(59,130,246,0.3); box-shadow: 0 0 24px rgba(59,130,246,0.1); }
+  .col-name { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+  .col-sub { font-size: 12px; color: rgba(255,255,255,0.5); }
+  .col-platform { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 6px; }
+  .cp-green { color: #4caf50; }
+  .cp-blue { color: #63b3ed; }
+
+  /* DATA ITEMS */
+  .data-section { margin-top: 4px; }
+  .data-section-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  .data-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: 8px; margin-bottom: 8px; font-size: 12px;
+    transition: all 0.3s ease;
+    animation: fadeSlideIn 0.5s ease both;
+  }
+  @keyframes fadeSlideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
+  .di-green { background: rgba(0,133,66,0.12); border: 1px solid rgba(0,133,66,0.25); }
+  .di-blue { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); animation-direction: reverse; }
+  .di-icon { font-size: 14px; flex-shrink: 0; }
+  .di-label { font-weight: 600; flex: 1; }
+  .di-status { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+  .dis-sent { background: rgba(16,185,129,0.15); color: #10b981; }
+  .dis-received { background: rgba(99,179,237,0.15); color: #63b3ed; }
+  .dis-ready { background: rgba(245,158,11,0.15); color: #f59e0b; }
+
+  /* CENTER: FLOW CHANNEL */
+  .center-col {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; padding: 0 20px;
+  }
+  .bridge-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 20px; }
+  .bridge-box {
+    width: 100%; max-width: 280px; background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
+    padding: 20px; text-align: center; position: relative;
+  }
+  .bridge-title { font-size: 14px; font-weight: 800; margin-bottom: 8px; }
+  .bridge-badges { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+  .bridge-badge { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .bb-tls { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #10b981; }
+  .bb-api { background: rgba(99,179,237,0.1); border: 1px solid rgba(99,179,237,0.2); color: #63b3ed; }
+  .bb-enc { background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.2); color: #a78bfa; }
+  .latency-pill { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.7); margin-top: 12px; display: inline-block; }
+  .latency-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981; margin-right: 6px; animation: blink 1.5s ease infinite; }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  /* ARROWS */
+  .arrows-container { width: 100%; display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+  .arrow-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; position: relative; overflow: hidden; }
+  .ar-green { background: rgba(0,133,66,0.08); }
+  .ar-blue { background: rgba(59,130,246,0.08); }
+  .arrow-label { font-size: 11px; font-weight: 600; flex: 1; text-align: center; }
+  .al-green { color: #4caf50; }
+  .al-blue { color: #63b3ed; }
+
+  /* Animated dashes in arrows */
+  .arrow-line { flex: 1; height: 2px; position: relative; overflow: hidden; border-radius: 1px; }
+  .al-green-bg { background: rgba(76,175,80,0.3); }
+  .al-blue-bg { background: rgba(99,179,237,0.3); }
+  .arrow-dash {
+    position: absolute; top: 0; height: 100%; width: 30%;
+    border-radius: 1px;
+    animation: dashMove 1.5s linear infinite;
+  }
+  .ad-green { background: linear-gradient(90deg, transparent, #4caf50, transparent); }
+  .ad-blue { background: linear-gradient(90deg, transparent, #63b3ed, transparent); animation-direction: reverse; }
+  @keyframes dashMove { 0%{left:-30%} 100%{left:130%} }
+  .arrow-head { font-size: 14px; flex-shrink: 0; }
+
+  /* UNIFIED OUTPUT */
+  .unified-output {
+    margin: 20px 32px 0; background: linear-gradient(135deg, #0f1f14 0%, #0a1628 100%);
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 28px; position: relative; z-index: 10;
+    overflow: hidden;
+  }
+  .unified-output::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #1a5c38, #4caf50, #63b3ed, #1d4ed8);
+    background-size: 200% auto; animation: gradientMove 3s linear infinite;
+  }
+  @keyframes gradientMove { to{background-position:200% center} }
+  .uo-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .uo-icon { width: 48px; height: 48px; background: linear-gradient(135deg, rgba(0,133,66,0.2), rgba(59,130,246,0.2)); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; border: 1px solid rgba(255,255,255,0.1); }
+  .uo-title { font-size: 18px; font-weight: 800; }
+  .uo-sub { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+  .uo-ready { margin-left: auto; display: flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .uo-ready-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; }
+
+  .uo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .uo-item {
+    border-radius: 10px; padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .uoi-green { background: rgba(0,133,66,0.08); }
+  .uoi-blue { background: rgba(59,130,246,0.08); }
+  .uoi-mixed { background: linear-gradient(135deg, rgba(0,133,66,0.06), rgba(59,130,246,0.06)); }
+  .uoi-source { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .uoi-green .uoi-source { color: #4caf50; }
+  .uoi-blue .uoi-source { color: #63b3ed; }
+  .uoi-mixed .uoi-source { color: #a78bfa; }
+  .uoi-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .uoi-desc { font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.4; }
+  .uoi-check { font-size: 12px; margin-top: 6px; }
+
+  .uo-actions { display: flex; gap: 12px; }
+  .uo-btn-primary { flex: 1; background: linear-gradient(135deg, #1a5c38, #008542); color: #fff; padding: 12px 20px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 20px rgba(0,133,66,0.3); transition: all 0.2s; text-decoration: none; }
+  .uo-btn-primary:hover { transform: translateY(-1px); }
+  .uo-btn-secondary { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.8); padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; text-decoration: none; }
+  .uo-btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+  /* PARTICLE BG */
+  .bg-particles { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .bg-particle { position: absolute; border-radius: 50%; opacity: 0; animation: floatUp var(--dur) var(--delay) ease-in-out infinite; }
+  @keyframes floatUp { 0%{opacity:0;transform:translateY(0) scale(0)} 20%{opacity:var(--op)} 80%{opacity:var(--op)} 100%{opacity:0;transform:translateY(-120px) scale(1.5)} }
+
+  .screen-nav { position: fixed; bottom: 24px; right: 24px; display: flex; gap: 8px; z-index: 200; }
+  .snav-btn { background: rgba(255,255,255,0.08); backdrop-filter:blur(10px); color: #fff; border: 1px solid rgba(255,255,255,0.15); padding: 10px 18px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+  .snav-btn:hover { background: rgba(0,133,66,0.3); border-color: #4caf50; }
+  .snav-btn.primary { background: #1a5c38; border-color: #008542; }
+  .screen-label { position: fixed; bottom: 24px; left: 24px; background: rgba(0,133,66,0.15); backdrop-filter:blur(10px); border:1px solid rgba(0,133,66,0.3); color: #4caf50; padding: 6px 14px; border-radius: 6px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; z-index: 200; }
+</style>
+</head>
+<body>
+
+<div class="bg-particles" id="bgParticles"></div>
+
+<nav class="top-nav">
+  <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+    <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+  </svg>
+  <span style="color:rgba(255,255,255,0.3);font-size:18px;margin:0 4px;">|</span>
+  <span class="nav-brand">FreddyConnect</span>
+  <span style="color:rgba(255,255,255,0.3);font-size:14px;margin-left:8px;">→ Agent-to-Agent Communication</span>
+  <div class="scenario-pill">Scenario 2 · Screen 09 of 09</div>
+</nav>
+
+<div class="canvas">
+
+  <!-- TITLE -->
+  <div class="title-area">
+    <div class="title-label">Live Agent Session</div>
+    <div class="title-main">Marketing Insights Agent ↔ WPP Briefing Agent</div>
+    <div class="title-sub">Secure bidirectional data exchange · Real-time collaboration · Unified brief output</div>
+  </div>
+
+  <!-- THREE COLUMNS -->
+  <div class="three-col">
+
+    <!-- LEFT: FreddyConnect / Marketing Insights Agent -->
+    <div class="agent-col col-heineken">
+      <div class="col-logo-area">
+        <div class="col-logo-icon li-green">🧠</div>
+        <div class="col-name">Marketing Insights Agent</div>
+        <div class="col-sub">Heineken's consumer intelligence</div>
+        <div class="col-platform cp-green">FreddyConnect · Heineken</div>
+      </div>
+
+      <div class="data-section">
+        <div class="data-section-label">Sharing with WPP →</div>
+
+        <div class="data-item di-green" style="animation-delay:0.1s;">
+          <div class="di-icon">📋</div>
+          <div class="di-label">Campaign Brief — Heineken Silver Q2</div>
+          <div class="di-status dis-sent">Sent</div>
+        </div>
+        <div class="data-item di-green" style="animation-delay:0.3s;">
+          <div class="di-icon">🇪🇺</div>
+          <div class="di-label">EUR Market Insights Package</div>
+          <div class="di-status dis-sent">Sent</div>
+        </div>
+        <div class="data-item di-green" style="animation-delay:0.5s;">
+          <div class="di-icon">👥</div>
+          <div class="di-label">Consumer Segments — 25-38 Urban</div>
+          <div class="di-status dis-sent">Sent</div>
+        </div>
+        <div class="data-item di-green" style="animation-delay:0.7s;">
+          <div class="di-icon">📊</div>
+          <div class="di-label">Competitive Landscape Data</div>
+          <div class="di-status dis-sent">Sent</div>
+        </div>
+        <div class="data-item di-green" style="animation-delay:0.9s;">
+          <div class="di-icon">💰</div>
+          <div class="di-label">Budget Parameters — €18-22M</div>
+          <div class="di-status dis-sent">Sent</div>
+        </div>
+
+        <div class="data-section-label" style="margin-top:16px;">← Received from WPP</div>
+
+        <div class="data-item" style="background:rgba(0,133,66,0.06);border:1px solid rgba(0,133,66,0.15);animation-delay:1.2s;">
+          <div class="di-icon">🗺️</div>
+          <div class="di-label">Strategic Framework Template</div>
+          <div class="di-status dis-received">Received</div>
+        </div>
+        <div class="data-item" style="background:rgba(0,133,66,0.06);border:1px solid rgba(0,133,66,0.15);animation-delay:1.4s;">
+          <div class="di-icon">✏️</div>
+          <div class="di-label">Populated Brief Template</div>
+          <div class="di-status dis-received">Received</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: BRIDGE -->
+    <div class="center-col">
+      <div class="bridge-label">Secure API Bridge</div>
+
+      <div class="bridge-box">
+        <div class="bridge-title">FreddyConnect</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:12px;">Integration Layer</div>
+        <div class="bridge-badges">
+          <div class="bridge-badge bb-tls">🔒 TLS 1.3 Encrypted</div>
+          <div class="bridge-badge bb-api">⚡ REST API · WebSocket</div>
+          <div class="bridge-badge bb-enc">🛡 Data Governance · Logged</div>
+        </div>
+        <div class="latency-pill"><span class="latency-dot"></span>Latency: 38ms</div>
+      </div>
+
+      <!-- LIVE ARROWS -->
+      <div class="arrows-container" style="margin-top:20px;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Live Data Exchange</div>
+
+        <div class="arrow-row ar-green">
+          <div style="font-size:11px;color:#4caf50;font-weight:700;width:26px;">HNK</div>
+          <div class="arrow-line al-green-bg"><div class="arrow-dash ad-green"></div></div>
+          <div class="arrow-head" style="color:#4caf50;">▶</div>
+          <div style="font-size:11px;color:#4caf50;font-weight:700;width:30px;">WPP</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-left:4px;">Brief data</div>
+        </div>
+
+        <div class="arrow-row ar-blue">
+          <div style="font-size:11px;color:#63b3ed;font-weight:700;width:26px;">WPP</div>
+          <div class="arrow-line al-blue-bg"><div class="arrow-dash ad-blue"></div></div>
+          <div class="arrow-head" style="color:#63b3ed;">◀</div>
+          <div style="font-size:11px;color:#63b3ed;font-weight:700;width:30px;">HNK</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-left:4px;">Strategy</div>
+        </div>
+
+        <div class="arrow-row ar-green" style="margin-top:4px;">
+          <div style="font-size:11px;color:#4caf50;font-weight:700;width:26px;">HNK</div>
+          <div class="arrow-line al-green-bg"><div class="arrow-dash ad-green" style="animation-delay:0.75s;"></div></div>
+          <div class="arrow-head" style="color:#4caf50;">▶</div>
+          <div style="font-size:11px;color:#4caf50;font-weight:700;width:30px;">WPP</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-left:4px;">Audience</div>
+        </div>
+
+        <div class="arrow-row ar-blue">
+          <div style="font-size:11px;color:#63b3ed;font-weight:700;width:26px;">WPP</div>
+          <div class="arrow-line al-blue-bg"><div class="arrow-dash ad-blue" style="animation-delay:0.5s;"></div></div>
+          <div class="arrow-head" style="color:#63b3ed;">◀</div>
+          <div style="font-size:11px;color:#63b3ed;font-weight:700;width:30px;">HNK</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-left:4px;">Creative</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;text-align:center;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:6px;">Packets exchanged</div>
+        <div style="font-size:24px;font-weight:800;color:#4caf50;" id="packetCounter">142</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: WPP Briefing Agent -->
+    <div class="agent-col col-wpp">
+      <div class="col-logo-area">
+        <div class="col-logo-icon li-blue">
+          <span style="font-size:24px;font-weight:900;color:#63b3ed;font-family:serif;">W</span>
+        </div>
+        <div class="col-name">WPP Briefing Agent</div>
+        <div class="col-sub">WPP's strategic intelligence</div>
+        <div class="col-platform cp-blue">WPP Open · Agency</div>
+      </div>
+
+      <div class="data-section">
+        <div class="data-section-label">← Received from Heineken</div>
+
+        <div class="data-item di-blue" style="animation-delay:0.2s;">
+          <div class="di-icon">📋</div>
+          <div class="di-label">Campaign Brief Parsed</div>
+          <div class="di-status dis-received">Processed</div>
+        </div>
+        <div class="data-item di-blue" style="animation-delay:0.4s;">
+          <div class="di-icon">📊</div>
+          <div class="di-label">EUR Consumer Data Ingested</div>
+          <div class="di-status dis-received">Processed</div>
+        </div>
+        <div class="data-item di-blue" style="animation-delay:0.6s;">
+          <div class="di-icon">🏆</div>
+          <div class="di-label">Competitive Context Applied</div>
+          <div class="di-status dis-received">Processed</div>
+        </div>
+
+        <div class="data-section-label" style="margin-top:16px;">→ Generating for Heineken</div>
+
+        <div class="data-item" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);animation-delay:1.0s;">
+          <div class="di-icon">🗺️</div>
+          <div class="di-label">Strategic Framework</div>
+          <div class="di-status" style="background:rgba(16,185,129,0.15);color:#10b981;">Complete</div>
+        </div>
+        <div class="data-item" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);animation-delay:1.2s;">
+          <div class="di-icon">💡</div>
+          <div class="di-label">Creative Direction Proposal</div>
+          <div class="di-status" style="background:rgba(16,185,129,0.15);color:#10b981;">Complete</div>
+        </div>
+        <div class="data-item" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);animation-delay:1.4s;">
+          <div class="di-icon">📝</div>
+          <div class="di-label">Brief Template — Fully Populated</div>
+          <div class="di-status dis-ready">Sending</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNIFIED OUTPUT -->
+  <div class="unified-output">
+    <div class="uo-header">
+      <div class="uo-icon">⚡</div>
+      <div>
+        <div class="uo-title">Unified Output — Heineken Silver Q2 Brief</div>
+        <div class="uo-sub">Generated collaboratively by FreddyConnect Marketing Insights Agent + WPP Open Briefing Agent</div>
+      </div>
+      <div class="uo-ready">
+        <div class="uo-ready-dot"></div>
+        Ready for Review
+      </div>
+    </div>
+
+    <div class="uo-grid">
+      <div class="uo-item uoi-green">
+        <div class="uoi-source">From Heineken Agent</div>
+        <div class="uoi-title">EUR Consumer Insights</div>
+        <div class="uoi-desc">NL/DE/FR over-index data, 25-38 male, seasonal uplift 34%, digital behavior profile</div>
+        <div class="uoi-check">✓ Populated in brief</div>
+      </div>
+      <div class="uo-item uoi-blue">
+        <div class="uoi-source">From WPP Agent</div>
+        <div class="uoi-title">Strategic Framework</div>
+        <div class="uoi-desc">"Refreshingly Distinctive" brand positioning, messaging hierarchy, channel strategy recommendation</div>
+        <div class="uoi-check" style="color:#63b3ed;">✓ Applied to brief</div>
+      </div>
+      <div class="uo-item uoi-mixed">
+        <div class="uoi-source">Combined Intelligence</div>
+        <div class="uoi-title">Integrated Campaign Brief</div>
+        <div class="uoi-desc">Full brief document: objectives, audience, strategy, creative direction, market priorities, budget split, timeline</div>
+        <div class="uoi-check" style="color:#a78bfa;">✓ 14 sections completed</div>
+      </div>
+      <div class="uo-item uoi-green">
+        <div class="uoi-source">From Heineken Agent</div>
+        <div class="uoi-title">Market Priority Matrix</div>
+        <div class="uoi-desc">EUR 60% / AMER 22% / APAC 13% / Africa 5% — data-validated allocation model</div>
+        <div class="uoi-check">✓ Budget allocated</div>
+      </div>
+      <div class="uo-item uoi-blue">
+        <div class="uoi-source">From WPP Agent</div>
+        <div class="uoi-title">Creative Direction</div>
+        <div class="uoi-desc">Visual identity guidance, tone of voice, format recommendations for each market and channel</div>
+        <div class="uoi-check" style="color:#63b3ed;">✓ Creative brief ready</div>
+      </div>
+      <div class="uo-item uoi-mixed">
+        <div class="uoi-source">Ready for Action</div>
+        <div class="uoi-title">Workfront Task Ready</div>
+        <div class="uoi-desc">Brief ready to push to Adobe Workfront for approval. WPP team notified to commence production.</div>
+        <div class="uoi-check" style="color:#a78bfa;">→ Awaiting approval</div>
+      </div>
+    </div>
+
+    <div class="uo-actions">
+      <a href="screen2.html" class="uo-btn-primary">✅ Send to Workfront for Approval</a>
+      <a href="screen5.html" class="uo-btn-secondary">📄 Preview Document</a>
+      <a href="index.html" class="uo-btn-secondary">⊞ View All Screens</a>
+    </div>
+  </div>
+</div>
+
+<div class="screen-label">Scenario 2 · Screen 09 of 09</div>
+<div class="screen-nav">
+  <a href="screen8.html" class="snav-btn">← Agent Discovery</a>
+  <a href="index.html" class="snav-btn primary">⊞ All Screens</a>
+</div>
+
+<script>
+// Background particles
+const bg = document.getElementById('bgParticles');
+for(let i=0;i<30;i++){
+  const p=document.createElement('div');
+  p.className='bg-particle';
+  const size=2+Math.random()*4;
+  p.style.width=p.style.height=size+'px';
+  p.style.left=(Math.random()*100)+'%';
+  p.style.top=(20+Math.random()*80)+'%';
+  p.style.background=Math.random()>0.5?'#4caf50':'#63b3ed';
+  p.style.setProperty('--dur',(3+Math.random()*5)+'s');
+  p.style.setProperty('--delay',(Math.random()*4)+'s');
+  p.style.setProperty('--op',0.2+Math.random()*0.4);
+  bg.appendChild(p);
+}
+// Packet counter animation
+let count=142;
+setInterval(()=>{
+  count+=Math.floor(Math.random()*3)+1;
+  const el=document.getElementById('packetCounter');
+  if(el) el.textContent=count;
+},800);
+</script>
+</body>
+</html>

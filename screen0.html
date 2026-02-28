@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreddyConnect — Connect+ Process & Governance</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #0a1f12; color: #fff; width: 1440px; min-height: 900px; overflow-x: hidden; }
+
+  /* NAV */
+  .top-nav {
+    height: 64px; background: rgba(255,255,255,0.04); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; padding: 0 40px; gap: 16px;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  }
+  .nav-brand { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .nav-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .nav-avatar { width: 36px; height: 36px; background: #008542; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
+  .nav-pill { background: rgba(76,175,80,0.15); color: #4caf50; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid rgba(76,175,80,0.3); }
+
+  /* HERO */
+  .hero { padding: 100px 80px 48px; text-align: center; position: relative; }
+  .hero-label { font-size: 11px; font-weight: 700; color: #4caf50; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 16px; }
+  .hero-title { font-size: 48px; font-weight: 900; color: #fff; margin-bottom: 12px; line-height: 1.1; }
+  .hero-title span { color: #4caf50; }
+  .hero-sub { font-size: 16px; color: rgba(255,255,255,0.55); max-width: 600px; margin: 0 auto 8px; line-height: 1.6; }
+
+  /* PROCESS CONTAINER */
+  .process-container { padding: 40px 80px 80px; }
+
+  /* TOP ROW: Steps 1, 2, 3 */
+  .top-row { display: flex; align-items: stretch; justify-content: center; gap: 0; margin-bottom: 0; }
+
+  /* STEP CARD */
+  .step-card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 32px 28px; width: 310px; flex-shrink: 0;
+    position: relative; transition: all 0.3s ease;
+  }
+  .step-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(76,175,80,0.3); transform: translateY(-3px); }
+  .step-card.clickable {
+    cursor: pointer;
+    background: rgba(0,133,66,0.12);
+    border-color: rgba(0,133,66,0.4);
+    box-shadow: 0 0 32px rgba(0,133,66,0.15);
+  }
+  .step-card.clickable:hover {
+    background: rgba(0,133,66,0.2);
+    border-color: #4caf50;
+    box-shadow: 0 0 48px rgba(0,133,66,0.3);
+    transform: translateY(-4px);
+  }
+
+  .step-number {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900; color: #fff;
+    margin: 0 auto 20px; position: relative;
+  }
+  .step-card.clickable .step-number {
+    background: rgba(0,133,66,0.3); border-color: #4caf50;
+    color: #4caf50; box-shadow: 0 0 16px rgba(0,133,66,0.4);
+  }
+
+  .step-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 3px; text-transform: uppercase; text-align: center; margin-bottom: 8px; }
+  .step-card.clickable .step-label { color: #4caf50; }
+
+  .step-title { font-size: 20px; font-weight: 800; color: #fff; text-align: center; margin-bottom: 16px; line-height: 1.2; }
+  .step-card.clickable .step-title { color: #fff; }
+
+  .step-desc { font-size: 13px; color: rgba(255,255,255,0.55); text-align: center; line-height: 1.65; }
+
+  .click-hint {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(0,133,66,0.3);
+    font-size: 12px; font-weight: 700; color: #4caf50;
+    animation: pulseHint 2s ease infinite;
+  }
+  @keyframes pulseHint { 0%,100%{opacity:0.7} 50%{opacity:1} }
+
+  /* HORIZONTAL ARROWS between top steps */
+  .h-arrow {
+    display: flex; align-items: center; justify-content: center;
+    width: 64px; flex-shrink: 0; position: relative; padding-top: 40px;
+  }
+  .h-arrow-line {
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, rgba(76,175,80,0.6), rgba(76,175,80,1));
+    position: relative;
+  }
+  .h-arrow-line::after {
+    content: '▶'; position: absolute; right: -10px; top: 50%;
+    transform: translateY(-50%); color: #4caf50; font-size: 14px; line-height: 1;
+  }
+  .h-arrow-label {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    font-size: 9px; font-weight: 700; color: rgba(76,175,80,0.6);
+    letter-spacing: 1px; text-transform: uppercase; white-space: nowrap;
+  }
+
+  /* CONNECTOR: step 3 down to step 4 */
+  .connector-row { display: flex; justify-content: flex-end; padding-right: 137px; margin: 0; height: 80px; position: relative; }
+  .v-down-line {
+    width: 2px; height: 100%;
+    background: linear-gradient(180deg, rgba(76,175,80,1), rgba(76,175,80,0.6));
+    position: relative;
+  }
+  .v-down-line::after {
+    content: '▼'; position: absolute; bottom: -12px; left: 50%;
+    transform: translateX(-50%); color: #4caf50; font-size: 14px;
+  }
+
+  /* LEFT TURN CONNECTOR: goes from bottom of step3 column, left across to step4 */
+  .l-connector { display: flex; align-items: flex-end; justify-content: flex-end; padding-right: 137px; height: 0; }
+
+  /* BOTTOM ROW: Steps 4, 5 */
+  .bottom-row { display: flex; align-items: stretch; justify-content: flex-start; gap: 0; padding-left: 0; }
+  .bottom-spacer { width: 374px; flex-shrink: 0; } /* aligns step4 under step1+arrow */
+
+  /* Curved connector from step3 to step4 */
+  .step3-to-4 {
+    display: flex; height: 80px; justify-content: flex-end;
+    padding-right: 154px; /* align with center of step3 */
+    position: relative;
+  }
+  .corner-connector {
+    display: flex; flex-direction: column; align-items: flex-end;
+    width: 400px; /* spans from step3 center to step4 center */
+  }
+  .corner-v { width: 2px; height: 40px; background: rgba(76,175,80,0.8); align-self: flex-end; }
+  .corner-h { height: 2px; width: 100%; background: linear-gradient(270deg, rgba(76,175,80,0.6), rgba(76,175,80,1)); position: relative; }
+  .corner-h::after { content:'▼'; position:absolute; left:-4px; bottom:-10px; color:#4caf50; font-size:14px; }
+  .corner-v2 { width: 2px; height: 40px; background: rgba(76,175,80,0.8); }
+
+  /* SCREEN NAV */
+  .screen-nav { position: fixed; bottom: 28px; right: 28px; display: flex; gap: 10px; z-index: 200; }
+  .snav-btn { background: #1a5c38; color: #fff; border: none; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(26,92,56,0.3); text-decoration: none; transition: all 0.15s; }
+  .snav-btn:hover { background: #008542; transform: translateY(-1px); }
+  .snav-btn.secondary { background: rgba(26,92,56,0.1); color: #4caf50; box-shadow: none; border: 1px solid rgba(76,175,80,0.4); }
+  .screen-label { position: fixed; bottom: 28px; left: 28px; background: rgba(0,133,66,0.25); backdrop-filter:blur(10px); border:1px solid rgba(0,133,66,0.4); color: #4caf50; padding: 8px 16px; border-radius: 8px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; z-index: 200; }
+
+  /* BG decoration */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image: linear-gradient(rgba(76,175,80,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(76,175,80,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+  .content-wrap { position: relative; z-index: 1; }
+
+  /* DIVIDER ROW: full-width row showing left turn from step3 → step4 */
+  .transition-zone {
+    display: flex;
+    align-items: center;
+    height: 80px;
+    padding: 0;
+    position: relative;
+  }
+  /* Invisible spacer for step1 + arrow + step2 + arrow widths */
+  .tz-spacer { width: 748px; flex-shrink: 0; } /* 310+64+310+64 = 748 */
+  /* Vertical drop from step3 */
+  .tz-vert { width: 2px; height: 80px; background: rgba(76,175,80,0.8); position: relative; align-self: flex-start; margin-left: 154px; /* centers under step3 = 310/2 */ }
+  .tz-vert::after { content:''; position:absolute; bottom:0; left:-4px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 8px solid #4caf50; }
+  /* We'll use an SVG for the L-turn */
+
+  /* Simpler approach: use a table-based layout */
+  .process-grid {
+    display: grid;
+    /* 5 cols: step1 | arrow | step2 | arrow | step3 */
+    /* Then the L connector */
+    gap: 0;
+  }
+  .full-process {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .top-steps { display: flex; align-items: center; gap: 0; margin-bottom: 0; }
+  .connector-svg { display: block; overflow: visible; }
+  .bottom-steps { display: flex; align-items: center; gap: 0; align-self: flex-start; margin-left: 0; }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<nav class="top-nav">
+  <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+    <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+  </svg>
+  <span style="color:rgba(255,255,255,0.3);font-size:20px;font-weight:200;margin:0 6px;">|</span>
+  <span class="nav-brand">FreddyConnect</span>
+  <div class="nav-right">
+    <span class="nav-pill">Connect+ Framework</span>
+    <div class="nav-avatar">SD</div>
+  </div>
+</nav>
+
+<div class="content-wrap">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-label">Heineken · Marketing Excellence</div>
+    <div class="hero-title">Connect+ Process <span>&</span> Governance</div>
+    <div class="hero-sub">An end-to-end framework connecting Brand Strategy through to Initiative Activation — powered by FreddyConnect and WPP Open</div>
+  </div>
+
+  <!-- PROCESS DIAGRAM -->
+  <div class="process-container">
+    <div class="full-process">
+
+      <!-- TOP ROW: Steps 1, 2, 3 -->
+      <div class="top-steps">
+
+        <!-- STEP 1 -->
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-label">Foundation</div>
+          <div class="step-title">Brand Strategy</div>
+          <div class="step-desc">Define a long term (3 year) Comms strategy brief based on D2W and Consumer jobs to be done with Strategic Plan (SP) as an input.</div>
+        </div>
+
+        <!-- ARROW 1→2 -->
+        <div class="h-arrow">
+          <div style="position:relative;width:100%;">
+            <div style="font-size:9px;font-weight:700;color:rgba(76,175,80,0.5);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:8px;white-space:nowrap;">Informs</div>
+            <div class="h-arrow-line"></div>
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-label">3 Year</div>
+          <div class="step-title">Comms Strategy</div>
+          <div class="step-desc">Long term (3 year) plan to drive Sales and Brand Power targets based on consumer jobs to be done and SP.</div>
+        </div>
+
+        <!-- ARROW 2→3 -->
+        <div class="h-arrow">
+          <div style="position:relative;width:100%;">
+            <div style="font-size:9px;font-weight:700;color:rgba(76,175,80,0.5);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:8px;white-space:nowrap;">Drives</div>
+            <div class="h-arrow-line"></div>
+          </div>
+        </div>
+
+        <!-- STEP 3: CLICKABLE -->
+        <div class="step-card clickable" onclick="window.location.href='screen1.html'">
+          <div class="step-number">3</div>
+          <div class="step-label">1 Year</div>
+          <div class="step-title">Comms Plan</div>
+          <div class="step-desc">Annual 'Through The Line' (considering both ATL and BTL) plan and calendar to deliver year 1 targets, based on Annual Plan (AP).</div>
+          <div class="click-hint">
+            <svg width="14" height="14" fill="none" stroke="#4caf50" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            View Comms Plan Demo
+          </div>
+        </div>
+      </div>
+
+      <!-- L-SHAPED CONNECTOR SVG -->
+      <svg class="connector-svg" width="1044" height="80" viewBox="0 0 1044 80">
+        <!-- Vertical drop from step 3 center (step1=310, arrow=64, step2=310, arrow=64, step3 center = 310/2 = 155; total = 903) -->
+        <!-- step3 center x = 310 + 64 + 310 + 64 + 155 = 903 -->
+        <line x1="903" y1="0" x2="903" y2="60" stroke="#4caf50" stroke-width="2" stroke-opacity="0.8"/>
+        <!-- Horizontal line going left to step4 center -->
+        <!-- step4 will be offset: bottom row starts at x=155 (center of step4 if no spacer) -->
+        <!-- step4 center = 155 -->
+        <line x1="155" y1="60" x2="903" y2="60" stroke="#4caf50" stroke-width="2" stroke-opacity="0.8"/>
+        <!-- Down arrow at step4 center -->
+        <line x1="155" y1="60" x2="155" y2="80" stroke="#4caf50" stroke-width="2" stroke-opacity="0.8"/>
+        <polygon points="151,76 155,84 159,76" fill="#4caf50" opacity="0.8"/>
+        <!-- Right arrow head at step3 side -->
+        <polygon points="899,−4 907,0 899,4" fill="#4caf50" opacity="0" />
+        <!-- Label on the horizontal run -->
+        <text x="540" y="52" fill="rgba(76,175,80,0.5)" font-size="9" font-family="Inter,sans-serif" font-weight="700" letter-spacing="2" text-anchor="middle" text-transform="uppercase">ANNUAL PLANNING</text>
+      </svg>
+
+      <!-- BOTTOM ROW: Steps 4, 5 -->
+      <div class="bottom-steps">
+
+        <!-- STEP 4 -->
+        <div class="step-card">
+          <div class="step-number">4</div>
+          <div class="step-label">Design & Production</div>
+          <div class="step-title">Initiative Development</div>
+          <div class="step-desc">Design and production of initiatives within AP (TTL campaigns, always-on ecomms, in-store activations, digital services, experiential) — connecting Creative &amp; Paid/Owned/Earned/Shared Touchpoints.</div>
+        </div>
+
+        <!-- ARROW 4→5 -->
+        <div class="h-arrow">
+          <div style="position:relative;width:100%;">
+            <div style="font-size:9px;font-weight:700;color:rgba(76,175,80,0.5);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:8px;white-space:nowrap;">Executes</div>
+            <div class="h-arrow-line"></div>
+          </div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="step-card">
+          <div class="step-number">5</div>
+          <div class="step-label">Execution & Analysis</div>
+          <div class="step-title">Initiative Activation</div>
+          <div class="step-desc">Execution of plans, followed by analysis of short, mid, long-term insights to be fed back into the process.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="screen-label">Connect+ · Process Overview</div>
+<div class="screen-nav">
+  <a href="index.html" class="snav-btn secondary">⊞ Demo Navigator</a>
+  <a href="screen1.html" class="snav-btn">Enter Demo →</a>
+</div>
+</body>
+</html>
