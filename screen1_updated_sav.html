@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyFreddyai — Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f5f6f8; color: #1a1a2e; width: 1440px; min-height: 900px; overflow-x: hidden; }
+
+  /* NAV */
+  .top-nav {
+    height: 64px; background: #1a5c38; display: flex; align-items: center;
+    padding: 0 24px; gap: 16px; position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; }
+  .nav-brand { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .nav-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.2); margin: 0 8px; }
+  .nav-links { display: flex; gap: 4px; flex: 1; }
+  .nav-link { color: rgba(255,255,255,0.75); font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s; text-decoration: none; }
+  .nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-avatar { width: 36px; height: 36px; background: #008542; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .nav-notif { position: relative; cursor: pointer; }
+  .notif-dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #e63329; border-radius: 50%; border: 2px solid #1a5c38; }
+
+  /* LAYOUT */
+  .layout { display: flex; padding-top: 64px; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px; background: #ffffff; border-right: 1px solid #e8eaed;
+    padding: 24px 0; display: flex; flex-direction: column; gap: 2px;
+    position: fixed; top: 64px; bottom: 0; left: 0; z-index: 90;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+  }
+  .sidebar-section { padding: 0 12px; margin-bottom: 8px; }
+  .sidebar-label { font-size: 10px; font-weight: 700; color: #9ca3af; letter-spacing: 2px; text-transform: uppercase; padding: 0 12px 8px; }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
+    cursor: pointer; font-size: 13px; font-weight: 500; color: #6b7280; transition: all 0.15s;
+    text-decoration: none;
+  }
+  .sidebar-item:hover { background: #f0fdf4; color: #1a5c38; }
+  .sidebar-item.active { background: #f0fdf4; color: #1a5c38; font-weight: 600; }
+  .sidebar-item.active .si-icon { color: #008542; }
+  .si-icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-badge { margin-left: auto; background: #e63329; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+  .sidebar-badge-green { margin-left: auto; background: #dcfce7; color: #15803d; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+
+  /* MAIN */
+  .main { margin-left: 220px; padding: 32px 36px; flex: 1; }
+
+  /* ALERT BANNER */
+  .alert-banner {
+    background: linear-gradient(135deg, #1a5c38 0%, #008542 100%);
+    border-radius: 12px; padding: 16px 20px; display: flex; align-items: center;
+    gap: 16px; margin-bottom: 28px; color: #fff;
+    box-shadow: 0 4px 20px rgba(26,92,56,0.3);
+    animation: slideDown 0.5s ease;
+    cursor: pointer;
+  }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  .alert-icon { font-size: 24px; flex-shrink: 0; }
+  .alert-content { flex: 1; }
+  .alert-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .alert-sub { font-size: 12px; color: rgba(255,255,255,0.8); }
+  .alert-source { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .alert-source-badge { background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .alert-btn {
+    background: #fff; color: #1a5c38; padding: 10px 20px; border-radius: 8px;
+    font-size: 13px; font-weight: 700; cursor: pointer; border: none;
+    white-space: nowrap; flex-shrink: 0; transition: all 0.15s;
+  }
+  .alert-btn:hover { background: #f0fdf4; transform: scale(1.02); }
+
+  /* WELCOME */
+  .welcome-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+  .welcome-title { font-size: 26px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+  .welcome-sub { font-size: 14px; color: #6b7280; }
+  .date-badge { background: #fff; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #374151; }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb; transition: all 0.2s; }
+  .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .stat-label { font-size: 11px; font-weight: 600; color: #9ca3af; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+  .stat-change { font-size: 12px; font-weight: 500; }
+  .up { color: #059669; }
+  .down { color: #e63329; }
+  .stat-icon { float: right; font-size: 20px; margin-top: -28px; opacity: 0.6; }
+
+  /* GRID */
+  .content-grid { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+
+  /* CAMPAIGNS */
+  .card { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; }
+  .card-header { padding: 20px 24px 16px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+  .card-action { font-size: 12px; color: #008542; font-weight: 600; cursor: pointer; }
+  .campaign-list { padding: 8px; }
+  .campaign-item {
+    display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+    border-radius: 8px; cursor: pointer; transition: all 0.15s; margin-bottom: 4px;
+  }
+  .campaign-item:hover { background: #f9fafb; }
+  .campaign-logo { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0; }
+  .cl-silver { background: #e8f5e9; color: #1a5c38; }
+  .cl-zero { background: #e3f2fd; color: #1565c0; }
+  .cl-desp { background: #fce4ec; color: #c62828; }
+  .campaign-info { flex: 1; }
+  .campaign-name { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 3px; }
+  .campaign-meta { font-size: 12px; color: #9ca3af; }
+  .campaign-right { text-align: right; }
+  .campaign-status { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+  .status-active { background: #dcfce7; color: #15803d; }
+  .status-review { background: #fef3c7; color: #92400e; }
+  .status-planning { background: #e0e7ff; color: #3730a3; }
+  .campaign-progress { width: 80px; height: 4px; background: #f3f4f6; border-radius: 2px; margin-left: auto; }
+  .progress-fill { height: 100%; border-radius: 2px; background: #008542; }
+
+  /* ACTIVITY */
+  .activity-list { padding: 8px; }
+  .activity-item { display: flex; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 2px; }
+  .activity-item:hover { background: #f9fafb; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .dot-green { background: #008542; }
+  .dot-blue { background: #3b82f6; }
+  .dot-orange { background: #f59e0b; }
+  .dot-red { background: #e63329; }
+  .activity-text { font-size: 13px; color: #374151; line-height: 1.4; flex: 1; }
+  .activity-text strong { color: #1a1a2e; }
+  .activity-time { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+  /* SCREEN NAV */
+  .screen-nav {
+    position: fixed; bottom: 28px; right: 28px; display: flex; gap: 10px; z-index: 200;
+  }
+  .snav-btn {
+    background: #1a5c38; color: #fff; border: none; padding: 12px 20px; border-radius: 10px;
+    font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 16px rgba(26,92,56,0.3); text-decoration: none; transition: all 0.15s;
+  }
+  .snav-btn:hover { background: #008542; transform: translateY(-1px); }
+  .snav-btn.secondary { background: rgba(26,92,56,0.1); color: #1a5c38; box-shadow: none; border: 1px solid #008542; }
+  .snav-btn.secondary:hover { background: rgba(26,92,56,0.15); }
+  .screen-label {
+    position: fixed; bottom: 28px; left: 28px; background: rgba(26,92,56,0.9);
+    color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 11px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase; z-index: 200; backdrop-filter: blur(8px);
+  }
+  .scenario-tag { color: #4caf50; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+    </svg>
+    <span style="color:rgba(255,255,255,0.5);font-size:20px;font-weight:300;margin:0 2px;">|</span>
+    <span class="nav-brand">MyFreddyai</span>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="nav-links">
+    <a class="nav-link" href="#">Dashboard</a>
+    <a class="nav-link" href="#">Campaigns</a>
+    <a class="nav-link" href="#">Agents</a>
+    <a class="nav-link" href="#">Workfront</a>
+    <a class="nav-link" href="#">Analytics</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-notif">
+      <svg width="20" height="20" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <div class="notif-dot"></div>
+    </div>
+    <div class="nav-avatar">SD</div>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <a class="sidebar-item active" href="#">
+        <span class="si-icon">⬛</span> Dashboard
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="si-icon">📁</span> Campaigns
+        <span class="sidebar-badge-green">3</span>
+      </a>
+      <a class="sidebar-item" href="screen6.html">
+        <span class="si-icon">🤖</span> Agents
+      </a>
+      <a class="sidebar-item" href="screen2.html">
+        <span class="si-icon">⚙️</span> Workfront
+        <span class="sidebar-badge">1</span>
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Intelligence</div>
+      <a class="sidebar-item" href="#">
+        <span class="si-icon">📊</span> Analytics
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="si-icon">💡</span> Insights
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="si-icon">📈</span> ROI Engine
+      </a>
+    </div>
+    <div class="sidebar-section" style="margin-top: auto; padding-top: 16px; border-top: 1px solid #f3f4f6;">
+      <a class="sidebar-item" href="#">
+        <span class="si-icon">⚙</span> Settings
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ALERT BANNER -->
+    <div class="alert-banner" onclick="window.location.href='screen2.html'">
+      <div class="alert-icon">📋</div>
+      <div class="alert-content">
+        <div class="alert-title">New Brief Received: Savanna Comedy Passion Point TTL Brief</div>
+        <div class="alert-sub">Campaign brief has been created and is ready for review and approval</div>
+        <div class="alert-source">
+          <span class="alert-source-badge">📐 Adobe Workfront</span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.7);">Received 4 minutes ago · Assigned to: Sarah Donovan</span>
+        </div>
+      </div>
+      <button class="alert-btn" onclick="window.location.href='screen2.html'">View Task →</button>
+    </div>
+
+    <!-- WELCOME -->
+    <div class="welcome-row">
+      <div>
+        <div class="welcome-title">Welcome back, Sarah 👋</div>
+        <div class="welcome-sub">Thursday, 26 February 2026 · Global Brand Marketing, Heineken</div>
+      </div>
+      <div class="date-badge">Q2 2026 Planning Period</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Active Campaigns</div>
+        <div class="stat-value">3 <span class="stat-icon">📁</span></div>
+        <div class="stat-change up">↑ 1 new this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending Tasks</div>
+        <div class="stat-value">7 <span class="stat-icon">✅</span></div>
+        <div class="stat-change" style="color:#6b7280;">2 require approval</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">WPP Workflows</div>
+        <div class="stat-value">2 <span class="stat-icon">🔄</span></div>
+        <div class="stat-change up">↑ 1 update received</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Agents Active</div>
+        <div class="stat-value">5 <span class="stat-icon">🤖</span></div>
+        <div class="stat-change" style="color:#6b7280;">3 Heineken · 2 WPP</div>
+      </div>
+    </div>
+
+    <!-- CONTENT GRID -->
+    <div class="content-grid">
+      <!-- CAMPAIGNS -->
+      <div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <div class="card-title">Active Campaigns</div>
+            <div class="card-action">View all →</div>
+          </div>
+          <div class="campaign-list">
+            <div class="campaign-item" onclick="window.location.href='screen2.html'">
+              <div class="campaign-logo cl-silver">TCT<br>LGT</div>
+              <div class="campaign-info">
+                <div class="campaign-name">Tecate Light: Brewed to keep up with your pace</div>
+                <div class="campaign-meta">New Positioning Territory · Mexico · AMER</div>
+              </div>
+              <div class="campaign-right">
+                <div class="campaign-status status-review">Awaiting Approval</div>
+                <div class="campaign-progress"><div class="progress-fill" style="width:25%"></div></div>
+                <div style="font-size:11px;color:#9ca3af;margin-top:3px;text-align:right;">25% complete</div>
+              </div>
+            </div>
+            <div class="campaign-item">
+              <div class="campaign-logo cl-zero">HNK<br>0.0</div>
+              <div class="campaign-info">
+                <div class="campaign-name">Heineken 0.0 — Summer 2026 Push</div>
+                <div class="campaign-meta">EUR · AMER · Health-conscious segment</div>
+              </div>
+              <div class="campaign-right">
+                <div class="campaign-status status-active">Active</div>
+                <div class="campaign-progress"><div class="progress-fill" style="width:60%;background:#3b82f6;"></div></div>
+                <div style="font-size:11px;color:#9ca3af;margin-top:3px;text-align:right;">60% complete</div>
+              </div>
+            </div>
+            <div class="campaign-item">
+              <div class="campaign-logo cl-desp">DSP</div>
+              <div class="campaign-info">
+                <div class="campaign-name">Desperados — Festival Season</div>
+                <div class="campaign-meta">EUR · Youth segment · Music partnerships</div>
+              </div>
+              <div class="campaign-right">
+                <div class="campaign-status status-planning">Planning</div>
+                <div class="campaign-progress"><div class="progress-fill" style="width:10%;background:#8b5cf6;"></div></div>
+                <div style="font-size:11px;color:#9ca3af;margin-top:3px;text-align:right;">10% complete</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WORKFRONT TASKS -->
+        <div class="card">
+          <div class="card-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="card-title">Workfront Tasks</div>
+              <span style="background:#fff3e0;color:#e65100;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">INTEGRATED</span>
+            </div>
+            <div class="card-action">Open Workfront →</div>
+          </div>
+          <div class="campaign-list">
+            <div class="campaign-item" onclick="window.location.href='screen2.html'" style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:#f59e0b;flex-shrink:0;margin-top:2px;box-shadow:0 0 6px #f59e0b;"></div>
+              <div class="campaign-info">
+                <div class="campaign-name" style="font-size:13px;">Tecate Light — New Positioning Brief Approval</div>
+                <div class="campaign-meta">Due: 28 Feb 2026 · Priority: High · Assigned: Sarah D.</div>
+              </div>
+              <div style="font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;padding:4px 10px;border-radius:6px;">Review Now</div>
+            </div>
+            <div class="campaign-item">
+              <div style="width:10px;height:10px;border-radius:50%;background:#10b981;flex-shrink:0;margin-top:2px;"></div>
+              <div class="campaign-info">
+                <div class="campaign-name" style="font-size:13px;">Heineken 0.0 — Creative Assets Review</div>
+                <div class="campaign-meta">Due: 5 Mar 2026 · Priority: Medium</div>
+              </div>
+              <div style="font-size:11px;font-weight:600;color:#6b7280;">In Progress</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY FEED -->
+      <div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <div class="card-title">Recent Activity</div>
+            <div class="card-action">View all</div>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-dot dot-green" style="box-shadow:0 0 6px #008542;"></div>
+              <div>
+                <div class="activity-text"><strong>WPP Open</strong> returned strategy draft for Heineken 0.0 Summer</div>
+                <div class="activity-time">12 minutes ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-blue"></div>
+              <div>
+                <div class="activity-text"><strong>Workfront</strong> brief received: Tecate Light — New Positioning Territory</div>
+                <div class="activity-time">4 minutes ago · New</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-orange"></div>
+              <div>
+                <div class="activity-text"><strong>ROI Engine Agent</strong> completed performance model for Desperados</div>
+                <div class="activity-time">1 hour ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-green"></div>
+              <div>
+                <div class="activity-text"><strong>Marketing Insights Agent</strong> updated EUR market report</div>
+                <div class="activity-time">2 hours ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-blue"></div>
+              <div>
+                <div class="activity-text"><strong>WPP Briefing Agent</strong> connected to session</div>
+                <div class="activity-time">Yesterday, 4:30 PM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot" style="background:#9ca3af;"></div>
+              <div>
+                <div class="activity-text">Creative assets approved for <strong>Heineken 0.0</strong></div>
+                <div class="activity-time">Yesterday, 2:15 PM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK AGENTS -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Quick Agent Access</div>
+            <div class="card-action" onclick="window.location.href='screen6.html'">All agents →</div>
+          </div>
+          <div style="padding:12px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div onclick="window.location.href='screen7.html'" style="display:flex;align-items:center;gap:12px;padding:12px;background:#f0fdf4;border-radius:8px;cursor:pointer;border:1px solid #bbf7d0;transition:all 0.15s;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+                <span style="font-size:20px;">🧠</span>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:600;color:#1a1a2e;">Marketing Insights Agent</div>
+                  <div style="font-size:11px;color:#6b7280;">Active · EUR market analysis ready</div>
+                </div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f9fafb;border-radius:8px;cursor:pointer;border:1px solid #f3f4f6;">
+                <span style="font-size:20px;">📊</span>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:600;color:#1a1a2e;">ROI Engine Agent</div>
+                  <div style="font-size:11px;color:#6b7280;">Idle · Last run: 1h ago</div>
+                </div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#9ca3af;"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f9fafb;border-radius:8px;cursor:pointer;border:1px solid #f3f4f6;">
+                <span style="font-size:20px;">🎯</span>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:600;color:#1a1a2e;">Marketing Engine Agent</div>
+                  <div style="font-size:11px;color:#6b7280;">Idle</div>
+                </div>
+                <div style="width:8px;height:8px;border-radius:50%;background:#9ca3af;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- SCREEN NAVIGATION -->
+<div class="screen-label"><span class="scenario-tag">Scenario 1</span> · Screen 01 of 09</div>
+<div class="screen-nav">
+  <a href="index.html" class="snav-btn secondary">⊞ All Screens</a>
+  <a href="screen2.html" class="snav-btn">Next: Workfront Brief →</a>
+</div>
+
+</body>
+</html>

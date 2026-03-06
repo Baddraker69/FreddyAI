@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyFreddyai — Workfront Brief</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f5f6f8; color: #1a1a2e; width: 1440px; min-height: 900px; }
+
+  .top-nav {
+    height: 64px; background: #1a5c38; display: flex; align-items: center;
+    padding: 0 24px; gap: 16px; position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; }
+  .nav-brand { color: #fff; font-size: 18px; font-weight: 700; }
+  .nav-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.2); margin: 0 8px; }
+  .workfront-badge {
+    display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12);
+    padding: 6px 14px; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600;
+  }
+  .nav-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .nav-avatar { width: 36px; height: 36px; background: #008542; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
+
+  .layout { display: flex; padding-top: 64px; }
+  .sidebar {
+    width: 220px; background: #ffffff; border-right: 1px solid #e8eaed;
+    padding: 24px 0; position: fixed; top: 64px; bottom: 0; left: 0; z-index: 90;
+  }
+  .sidebar-section { padding: 0 12px; margin-bottom: 8px; }
+  .sidebar-label { font-size: 10px; font-weight: 700; color: #9ca3af; letter-spacing: 2px; text-transform: uppercase; padding: 0 12px 8px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; color: #6b7280; text-decoration: none; }
+  .sidebar-item:hover { background: #f0fdf4; color: #1a5c38; }
+  .sidebar-item.active { background: #f0fdf4; color: #1a5c38; font-weight: 600; }
+  .si-icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-badge { margin-left: auto; background: #e63329; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+
+  .main { margin-left: 220px; padding: 32px 36px; flex: 1; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9ca3af; margin-bottom: 24px; }
+  .breadcrumb a { color: #9ca3af; text-decoration: none; }
+  .breadcrumb a:hover { color: #008542; }
+  .breadcrumb-sep { color: #d1d5db; }
+  .breadcrumb-current { color: #1a1a2e; font-weight: 600; }
+
+  .task-header {
+    background: #fff; border-radius: 12px; border: 1px solid #e5e7eb;
+    padding: 24px 28px; margin-bottom: 24px;
+    display: flex; align-items: flex-start; gap: 20px;
+  }
+  .task-icon { width: 52px; height: 52px; background: linear-gradient(135deg, #1a5c38, #008542); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .task-title-area { flex: 1; }
+  .task-title { font-size: 22px; font-weight: 800; color: #1a1a2e; margin-bottom: 6px; }
+  .task-meta-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .task-meta-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #6b7280; }
+  .priority-badge { background: #fef2f2; color: #dc2626; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .wf-badge { background: #eff6ff; color: #1d4ed8; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+
+  /* STATUS TRACK */
+  .status-track { display: flex; align-items: center; gap: 0; margin: 20px 0; }
+  .status-step { display: flex; align-items: center; }
+  .step-bubble {
+    display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+  }
+  .step-done { background: #dcfce7; color: #15803d; }
+  .step-active { background: #fef3c7; color: #92400e; border: 2px solid #f59e0b; }
+  .step-pending { background: #f3f4f6; color: #9ca3af; }
+  .step-line { width: 40px; height: 2px; background: #e5e7eb; }
+  .step-line.done { background: #10b981; }
+
+  /* FORM GRID */
+  .form-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
+  .form-card { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; padding: 28px; }
+  .form-section-title { font-size: 13px; font-weight: 700; color: #1a1a2e; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f0fdf4; }
+  .field-group { margin-bottom: 20px; }
+  .field-label { font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .field-value { font-size: 14px; color: #1a1a2e; padding: 10px 14px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; line-height: 1.5; }
+  .field-value.highlight { background: #f0fdf4; border-color: #86efac; color: #1a5c38; font-weight: 600; }
+  .field-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .market-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .market-tag { background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .market-tag.active { background: #dcfce7; color: #15803d; }
+
+  /* RIGHT PANEL */
+  .right-panel { display: flex; flex-direction: column; gap: 16px; }
+  .info-card { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; padding: 20px; }
+  .info-card-title { font-size: 12px; font-weight: 700; color: #9ca3af; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+  .assignee-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .assignee-avatar { width: 32px; height: 32px; border-radius: 50%; background: #008542; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; }
+  .assignee-name { font-size: 13px; font-weight: 600; color: #1a1a2e; }
+  .assignee-role { font-size: 11px; color: #9ca3af; }
+  .due-date { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1a1a2e; font-weight: 500; }
+  .due-urgent { color: #dc2626; font-weight: 700; }
+
+  /* APPROVE BUTTON */
+  .approve-section { margin-top: 24px; text-align: center; }
+  .approve-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, #1a5c38 0%, #008542 100%);
+    color: #fff; padding: 16px 36px; border-radius: 12px; border: none;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 6px 24px rgba(26,92,56,0.4);
+    transition: all 0.2s; width: 100%;
+    justify-content: center;
+  }
+  .approve-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(26,92,56,0.5); }
+  .approve-btn:active { transform: translateY(0); }
+  .approve-sub { font-size: 11px; color: #6b7280; margin-top: 8px; }
+
+  /* CHECKLIST */
+  .checklist-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 13px; color: #374151; }
+  .check-icon { flex-shrink: 0; margin-top: 1px; }
+
+  .screen-nav { position: fixed; bottom: 28px; right: 28px; display: flex; gap: 10px; z-index: 200; }
+  .snav-btn { background: #1a5c38; color: #fff; border: none; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(26,92,56,0.3); text-decoration: none; transition: all 0.15s; }
+  .snav-btn:hover { background: #008542; transform: translateY(-1px); }
+  .snav-btn.secondary { background: rgba(26,92,56,0.1); color: #1a5c38; box-shadow: none; border: 1px solid #008542; }
+  .screen-label { position: fixed; bottom: 28px; left: 28px; background: rgba(26,92,56,0.9); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; z-index: 200; }
+  .scenario-tag { color: #4caf50; }
+
+  /* ANIMATE ON APPROVE */
+  .approved-overlay { display:none; position:fixed; inset:0; background:rgba(26,92,56,0.95); z-index:999; flex-direction:column; align-items:center; justify-content:center; color:#fff; }
+  .approved-overlay.show { display:flex; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .approved-check { font-size: 80px; margin-bottom: 20px; animation: popIn 0.5s ease 0.2s both; }
+  @keyframes popIn { from{transform:scale(0)} to{transform:scale(1)} }
+  .approved-title { font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+  .approved-sub { font-size: 16px; color: rgba(255,255,255,0.8); margin-bottom: 32px; }
+  .approved-next { background:#fff; color:#1a5c38; padding:14px 32px; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; border:none; text-decoration:none; }
+</style>
+</head>
+<body>
+
+<!-- APPROVED OVERLAY -->
+<div class="approved-overlay" id="approvedOverlay">
+  <div class="approved-check">✅</div>
+  <div class="approved-title">Brief Approved!</div>
+  <div class="approved-sub">Initiating WPP Open Workflow — sending brief to agency partners</div>
+  <a href="screen3.html" class="approved-next">View Data Flow →</a>
+</div>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+      <polygon points="20,3 24.7,15.2 38,15.2 27.3,23.1 31.6,36 20,28.1 8.4,36 12.7,23.1 2,15.2 15.3,15.2" fill="#e63329"/>
+    </svg>
+    <span style="color:rgba(255,255,255,0.5);font-size:20px;font-weight:300;margin:0 2px;">|</span>
+    <span class="nav-brand">MyFreddyai</span>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="workfront-badge">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><rect x="2" y="3" width="20" height="18" rx="2" fill="none" stroke="#fff" stroke-width="2"/><path d="M8 9l4 4 4-4" stroke="#fff" stroke-width="2" fill="none"/></svg>
+    Adobe Workfront · Integrated Task View
+  </div>
+  <div class="nav-right">
+    <div style="color:rgba(255,255,255,0.7);font-size:12px;">Sarah Donovan · Global Brand Marketing</div>
+    <div class="nav-avatar">SD</div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <a class="sidebar-item" href="screen1.html"><span class="si-icon">⬛</span> Dashboard</a>
+      <a class="sidebar-item" href="#"><span class="si-icon">📁</span> Campaigns</a>
+      <a class="sidebar-item" href="screen6.html"><span class="si-icon">🤖</span> Agents</a>
+      <a class="sidebar-item active" href="#"><span class="si-icon">⚙️</span> Workfront<span class="sidebar-badge">1</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Intelligence</div>
+      <a class="sidebar-item" href="#"><span class="si-icon">📊</span> Analytics</a>
+      <a class="sidebar-item" href="#"><span class="si-icon">💡</span> Insights</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+      <a href="screen1.html">Dashboard</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="#">Workfront</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-current">Savanna Comedy Passion Point TTL Brief</span>
+    </div>
+
+    <!-- TASK HEADER -->
+    <div class="task-header">
+      <div class="task-icon">📋</div>
+      <div class="task-title-area">
+        <div class="task-title">Savanna Comedy Passion Point TTL Brief</div>
+        <div class="task-meta-row">
+          <span class="priority-badge">⚡ High Priority</span>
+          <span class="wf-badge">📐 Adobe Workfront</span>
+          <span class="task-meta-item">📅 Created: 26 Feb 2026</span>
+          <span class="task-meta-item">👤 Sarah Donovan</span>
+          <span class="task-meta-item">🏢 Global Brand Marketing</span>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">Task ID</div>
+        <div style="font-size:14px;font-weight:700;color:#1a1a2e;">#WF-2026-0892</div>
+      </div>
+    </div>
+
+    <!-- STATUS TRACK -->
+    <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:20px 28px;margin-bottom:24px;">
+      <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;">Brief Status</div>
+      <div class="status-track">
+        <div class="status-step">
+          <div class="step-bubble step-done">✓ Created</div>
+        </div>
+        <div class="step-line done"></div>
+        <div class="status-step">
+          <div class="step-bubble step-done">✓ Draft</div>
+        </div>
+        <div class="step-line done"></div>
+        <div class="status-step">
+          <div class="step-bubble step-active">● Under Review</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="status-step">
+          <div class="step-bubble step-pending">○ Approved</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="status-step">
+          <div class="step-bubble step-pending">○ Sent to WPP Open</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="status-step">
+          <div class="step-bubble step-pending">○ In Production</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM GRID -->
+    <div class="form-grid">
+      <!-- LEFT: BRIEF DETAILS -->
+      <div>
+        <div class="form-card">
+          <div class="form-section-title">Campaign Brief Details</div>
+
+          <div class="field-group">
+            <div class="field-label">Campaign Objective</div>
+            <div class="field-value">Drive brand love and cultural relevance for Savanna across Africa and key global markets in Q2 2026. Target 15% YoY volume uplift, positioning Savanna as the refreshingly funny choice for the 25–38 demographic.</div>
+          </div>
+
+          <div class="field-two">
+            <div class="field-group">
+              <div class="field-label">Campaign Name</div>
+              <div class="field-value highlight">Savanna Comedy Passion Point TTL Brief</div>
+            </div>
+            <div class="field-group">
+              <div class="field-label">Brand</div>
+              <div class="field-value">Savanna</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">Target Markets</div>
+            <div class="market-tags" style="margin-top:8px;">
+              <span class="market-tag">🇪🇺 EUR</span>
+              <span class="market-tag">🌎 AMER</span>
+              <span class="market-tag">🌏 APAC</span>
+              <span class="market-tag active">🌍 Africa — Primary</span>
+            </div>
+          </div>
+
+          <div class="field-two">
+            <div class="field-group">
+              <div class="field-label">Budget Range</div>
+              <div class="field-value">€18M – €22M</div>
+            </div>
+            <div class="field-group">
+              <div class="field-label">Campaign Timeline</div>
+              <div class="field-value">Apr 2026 – Jun 2026</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">Key Message</div>
+            <div class="field-value highlight">"Refreshingly Distinctive" — Premium accessible lager for the modern, aspirational consumer. Light, crisp, and crafted for those who appreciate quality without compromise.</div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">Target Audience</div>
+            <div class="field-value">Male and female, ages 25–38, urban professionals. Over-indexing in NL, DE, FR (EUR). Premium but value-conscious. Digital-first media consumption. Socially active.</div>
+          </div>
+
+          <div class="field-two">
+            <div class="field-group">
+              <div class="field-label">Agency Partner</div>
+              <div class="field-value">WPP Open (Lead Creative)</div>
+            </div>
+            <div class="field-group">
+              <div class="field-label">Requested Deliverables</div>
+              <div class="field-value">Strategy Framework, Creative Concepts, Media Plan</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="right-panel">
+        <div class="info-card">
+          <div class="info-card-title">Assigned Team</div>
+          <div class="assignee-row">
+            <div class="assignee-avatar">SD</div>
+            <div>
+              <div class="assignee-name">Sarah Donovan</div>
+              <div class="assignee-role">Brand Lead · Owner</div>
+            </div>
+          </div>
+          <div class="assignee-row">
+            <div class="assignee-avatar" style="background:#3b82f6;">MK</div>
+            <div>
+              <div class="assignee-name">Mark Kuiper</div>
+              <div class="assignee-role">Marketing Director · Reviewer</div>
+            </div>
+          </div>
+          <div class="assignee-row">
+            <div class="assignee-avatar" style="background:#8b5cf6;">AP</div>
+            <div>
+              <div class="assignee-name">Ana Pereira</div>
+              <div class="assignee-role">Global Comms · Stakeholder</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-title">Timeline</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="due-date">
+              <span>📅</span>
+              <div>
+                <div class="due-urgent">Due: 28 February 2026</div>
+                <div style="font-size:11px;color:#9ca3af;">2 days remaining</div>
+              </div>
+            </div>
+            <div class="due-date">
+              <span>🚀</span>
+              <div>
+                <div style="font-weight:600;">Campaign Start: 1 April 2026</div>
+                <div style="font-size:11px;color:#9ca3af;">33 days to launch</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-title">Pre-Approval Checklist</div>
+          <div class="checklist-item"><span class="check-icon">✅</span> Campaign objectives defined</div>
+          <div class="checklist-item"><span class="check-icon">✅</span> Target markets confirmed</div>
+          <div class="checklist-item"><span class="check-icon">✅</span> Budget range approved by Finance</div>
+          <div class="checklist-item"><span class="check-icon">✅</span> Key messaging aligned with brand guidelines</div>
+          <div class="checklist-item"><span class="check-icon">✅</span> WPP Open selected as lead agency</div>
+          <div class="checklist-item"><span class="check-icon" style="color:#f59e0b;">⏳</span> Final sign-off from Brand Director</div>
+        </div>
+
+        <!-- APPROVE BUTTON -->
+        <div class="info-card" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#86efac;">
+          <button class="approve-btn" onclick="document.getElementById('approvedOverlay').classList.add('show')">
+            ✅ Approve Brief &amp; Initiate WPP Open Workflow
+          </button>
+          <div class="approve-sub">This will send the brief to WPP Open and create tasks in their project management system via the MyFreddyai integration</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="screen-label"><span class="scenario-tag">Scenario 1</span> · Screen 02 of 09</div>
+<div class="screen-nav">
+  <a href="screen1.html" class="snav-btn secondary">← Dashboard</a>
+  <a href="index.html" class="snav-btn secondary">⊞ All Screens</a>
+  <a href="screen3.html" class="snav-btn">Next: Data Flow →</a>
+</div>
+</body>
+</html>
